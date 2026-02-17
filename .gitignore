@@ -31,3 +31,6 @@ results/*
 # Docs — exclude PDFs and technical_overview (Kaggle-only)
 docs/*.pdf
 docs/technical_overview.md
+
+# Dev-only scripts (instructions, compare scripts, execution plans)
+scripts/
