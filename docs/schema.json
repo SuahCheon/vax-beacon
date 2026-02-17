@@ -1,0 +1,479 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Vax-Beacon Agent Communication Schema",
+  "description": "6-Stage 파이프라인의 에이전트 간 데이터 계약. 각 Stage의 Output이 다음 Stage의 Input이 된다.",
+  "version": "1.0.0",
+
+  "definitions": {
+
+    "CaseInput": {
+      "description": "Stage 0 → Stage 1: 원본 VAERS CSV 1행에서 에이전트에 전달할 원시 데이터",
+      "type": "object",
+      "required": ["vaers_id", "symptom_text", "vax_date", "onset_date", "age_yrs", "sex", "vax_type", "vax_manu"],
+      "properties": {
+        "vaers_id":        { "type": "string",  "description": "VAERS Report ID" },
+        "symptom_text":    { "type": "string",  "description": "비구조화 임상 서술 (핵심 입력)" },
+        "symptom_codes":   { 
+          "type": "array", 
+          "items": { "type": "string" },
+          "description": "MedDRA coded symptoms (SYMPTOM1-5)" 
+        },
+        "lab_data":        { "type": "string",  "description": "검사 결과 원문" },
+        "history":         { "type": "string",  "description": "과거 병력" },
+        "cur_ill":         { "type": "string",  "description": "접종 시점 현재 질환" },
+        "other_meds":      { "type": "string",  "description": "병용 약물" },
+        "allergies":       { "type": "string",  "description": "알레르기 이력" },
+        "vax_date":        { "type": "string",  "format": "date", "description": "접종일 (MM/DD/YYYY)" },
+        "onset_date":      { "type": "string",  "format": "date", "description": "증상 발현일 (MM/DD/YYYY)" },
+        "age_yrs":         { "type": ["number", "null"], "description": "연령" },
+        "sex":             { "type": "string",  "enum": ["M", "F", "U"], "description": "성별" },
+        "vax_type":        { "type": "string",  "description": "백신 종류 (COVID19)" },
+        "vax_manu":        { "type": "string",  "description": "제조사 (PFIZER, MODERNA, JANSSEN)" },
+        "vax_dose_series": { "type": "string",  "description": "접종 차수" },
+        "died":            { "type": "boolean", "description": "사망 여부" },
+        "hospital":        { "type": "boolean", "description": "입원 여부" },
+        "hospdays":        { "type": ["number", "null"], "description": "입원 일수" },
+        "recovd":          { "type": "string",  "enum": ["Y", "N", "U", ""], "description": "회복 여부" },
+        "condition_type":  { "type": "string",  "enum": ["myocarditis", "pericarditis"], "description": "큐레이션 분류" },
+        "group":           { "type": "string",  "description": "큐레이션 그룹 (G1/G2/G3/clean/confounded)" }
+      }
+    },
+
+    "Stage1_ExtractorOutput": {
+      "description": "Stage 1 → Stage 2: Extractor가 비구조화 텍스트에서 추출한 구조화 데이터",
+      "type": "object",
+      "required": ["vaers_id", "patient", "vaccination", "event", "clinical_findings", "extraction_confidence"],
+      "properties": {
+        "vaers_id": { "type": "string" },
+        "patient": {
+          "type": "object",
+          "properties": {
+            "age":          { "type": ["number", "null"] },
+            "sex":          { "type": "string", "enum": ["M", "F", "U"] },
+            "medical_history": { 
+              "type": "array", 
+              "items": { "type": "string" },
+              "description": "과거 병력 목록" 
+            },
+            "current_illness": { 
+              "type": "array", 
+              "items": { "type": "string" },
+              "description": "접종 시점 질환" 
+            },
+            "medications":  { 
+              "type": "array", 
+              "items": { "type": "string" },
+              "description": "병용 약물 목록" 
+            },
+            "allergies":    { 
+              "type": "array", 
+              "items": { "type": "string" } 
+            }
+          }
+        },
+        "vaccination": {
+          "type": "object",
+          "properties": {
+            "vaccine_type":   { "type": "string" },
+            "manufacturer":   { "type": "string" },
+            "dose_number":    { "type": ["integer", "null"], "description": "1, 2, 3, or null" },
+            "vaccination_date": { "type": "string", "format": "date" }
+          }
+        },
+        "event": {
+          "type": "object",
+          "properties": {
+            "onset_date":     { "type": "string", "format": "date" },
+            "onset_days":     { "type": ["integer", "null"], "description": "접종→발현 일수 (계산값)" },
+            "primary_diagnosis": { "type": "string", "description": "주진단명" },
+            "symptoms": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "증상 목록 (chest pain, dyspnea, fever 등)"
+            },
+            "hospitalized":   { "type": "boolean" },
+            "hospital_days":  { "type": ["number", "null"] },
+            "outcome":        { "type": "string", "enum": ["recovered", "not_recovered", "recovering", "fatal", "unknown"] },
+            "died":           { "type": "boolean" }
+          }
+        },
+        "clinical_findings": {
+          "type": "object",
+          "description": "검사 소견 구조화",
+          "properties": {
+            "troponin": {
+              "type": "object",
+              "properties": {
+                "detected":    { "type": "boolean" },
+                "values":      { "type": "array", "items": { "type": "number" }, "description": "연속 측정값" },
+                "peak":        { "type": ["number", "null"] },
+                "unit":        { "type": "string", "default": "ng/mL" }
+              }
+            },
+            "bnp": {
+              "type": "object",
+              "properties": {
+                "detected": { "type": "boolean" },
+                "value":    { "type": ["number", "null"] }
+              }
+            },
+            "crp": {
+              "type": "object",
+              "properties": {
+                "detected": { "type": "boolean" },
+                "value":    { "type": ["number", "null"] },
+                "unit":     { "type": "string" }
+              }
+            },
+            "esr": {
+              "type": "object",
+              "properties": {
+                "detected": { "type": "boolean" },
+                "value":    { "type": ["number", "null"] }
+              }
+            },
+            "ekg_abnormal":         { "type": ["boolean", "null"], "description": "EKG 이상 소견" },
+            "ekg_findings":         { "type": "array", "items": { "type": "string" }, "description": "ST elevation, PR depression 등" },
+            "echo_abnormal":        { "type": ["boolean", "null"] },
+            "echo_findings":        { "type": "array", "items": { "type": "string" } },
+            "cardiac_mri_positive": { "type": ["boolean", "null"] },
+            "pericardial_effusion": { "type": "boolean" },
+            "ejection_fraction": {
+              "type": "object",
+              "properties": {
+                "measured":  { "type": "boolean" },
+                "value":     { "type": ["number", "null"], "description": "EF %" }
+              }
+            }
+          }
+        },
+        "prior_infection": {
+          "type": "object",
+          "description": "선행 감염 정보 (DDx에 핵심)",
+          "properties": {
+            "uri_recent":       { "type": ["boolean", "null"], "description": "최근 상기도 감염" },
+            "gi_recent":        { "type": ["boolean", "null"], "description": "최근 위장관 감염" },
+            "covid_positive":   { "type": ["boolean", "null"], "description": "COVID-19 양성 이력" },
+            "fever_pre_onset":  { "type": ["boolean", "null"], "description": "발현 전 발열" },
+            "infection_details": { "type": "string" }
+          }
+        },
+        "extraction_confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "추출 신뢰도 (0-1)"
+        },
+        "extraction_notes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "추출 과정에서의 불확실성이나 가정 기록"
+        }
+      }
+    },
+
+    "Stage2_ValidatorOutput": {
+      "description": "Stage 2 → Stage 3: Brighton Collaboration Case Definition 검증 결과",
+      "type": "object",
+      "required": ["vaers_id", "brighton_level", "brighton_criteria_met", "diagnostic_certainty"],
+      "properties": {
+        "vaers_id": { "type": "string" },
+        "brighton_level": {
+          "type": "integer",
+          "enum": [1, 2, 3, 4],
+          "description": "Brighton Case Definition Level. 1=Highest certainty, 4=Reported but insufficient evidence"
+        },
+        "brighton_criteria_met": {
+          "type": "object",
+          "description": "Brighton 기준 충족 항목별 체크리스트",
+          "properties": {
+            "clinical_symptoms":      { "type": "boolean", "description": "임상 증상 (흉통, 호흡곤란 등)" },
+            "ekg_evidence":           { "type": "boolean", "description": "EKG 이상 소견" },
+            "biomarker_elevation":    { "type": "boolean", "description": "심근 손상 바이오마커 상승 (troponin)" },
+            "imaging_evidence":       { "type": "boolean", "description": "영상 소견 (Echo/MRI)" },
+            "histopathology":         { "type": "boolean", "description": "조직병리 소견 (드묾)" },
+            "pericardial_findings":   { "type": "boolean", "description": "심낭 관련 소견 (effusion, rub)" }
+          }
+        },
+        "diagnostic_certainty": {
+          "type": "string",
+          "enum": ["definite", "probable", "possible", "insufficient"],
+          "description": "진단 확실성 등급"
+        },
+        "case_classification": {
+          "type": "string",
+          "enum": ["myocarditis", "pericarditis", "myopericarditis", "unclassified"],
+          "description": "Brighton 기준에 따른 질환 분류"
+        },
+        "biomarker_evidence": {
+          "type": "boolean",
+          "description": "심근 손상 바이오마커 존재 여부 (Shadow Scoring 트리거용)"
+        },
+        "validator_reasoning": {
+          "type": "string",
+          "description": "Brighton Level 판정 근거 서술"
+        },
+        "_passthrough": {
+          "$ref": "#/definitions/Stage1_ExtractorOutput",
+          "description": "Stage 1 출력 전체를 그대로 전달 (하위 Stage에서 참조)"
+        }
+      }
+    },
+
+    "Stage3_AuditorOutput": {
+      "description": "Stage 3 → Stage 4: 22일 기전 기반 시간적 분석 결과",
+      "type": "object",
+      "required": ["vaers_id", "onset_days", "temporal_window", "mechanistic_plausibility", "data_gaps"],
+      "properties": {
+        "vaers_id": { "type": "string" },
+        "onset_days": {
+          "type": ["integer", "null"],
+          "description": "접종→발현 일수"
+        },
+        "temporal_window": {
+          "type": "string",
+          "enum": ["A", "B", "C", "D"],
+          "description": "A(≤7d): 적극확증, B(8-21d): 연결조사, C(22-42d): 기저발생률, D(>42d): 우연"
+        },
+        "window_strategy": {
+          "type": "string",
+          "description": "해당 Window에 대한 분석 전략 설명"
+        },
+        "mechanistic_plausibility": {
+          "type": "string",
+          "enum": ["strong", "moderate", "weak", "coincidental", "indeterminate"],
+          "description": "기전적 개연성 등급"
+        },
+        "mechanistic_reasoning": {
+          "type": "string",
+          "description": "기전적 개연성 판단 근거 (면역 경로, 분자mimicry 등)"
+        },
+        "data_gaps": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "field":       { "type": "string", "description": "결측 필드명" },
+              "importance":  { "type": "string", "enum": ["critical", "important", "minor"] },
+              "impact":      { "type": "string", "description": "결측이 판정에 미치는 영향" }
+            }
+          },
+          "description": "결측 데이터 및 영향도"
+        },
+        "prior_infection_flag": {
+          "type": "boolean",
+          "description": "선행 감염 가능성이 식별되었는지 (Stage 4 DDx로 전달)"
+        },
+        "audit_confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "데이터 충분성 기반 신뢰도"
+        },
+        "_passthrough": {
+          "type": "object",
+          "description": "Stage 1-2 출력 누적 전달"
+        }
+      }
+    },
+
+    "Stage4_DDxSpecialistOutput": {
+      "description": "Stage 4 → Stage 5: 감별진단 및 대체원인 분석 결과",
+      "type": "object",
+      "required": ["vaers_id", "alternative_causes", "negative_causality_index", "viral_prodrome_assessment"],
+      "properties": {
+        "vaers_id": { "type": "string" },
+        "alternative_causes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "cause":       { "type": "string", "description": "대체 원인명" },
+              "likelihood":  { "type": "number", "minimum": 0, "maximum": 1, "description": "가능성 가중치" },
+              "evidence":    { "type": "string", "description": "근거" },
+              "category":    { "type": "string", "enum": ["viral_infection", "autoimmune", "drug_induced", "pre_existing", "idiopathic", "other"] }
+            }
+          },
+          "description": "감별진단 목록 (가중치 포함)"
+        },
+        "viral_prodrome_assessment": {
+          "type": "object",
+          "description": "선행 감염(URI/GI) 평가 — PRD Stage 4 핵심",
+          "properties": {
+            "uri_evidence":     { "type": "string", "enum": ["confirmed", "suspected", "absent", "unknown"] },
+            "gi_evidence":      { "type": "string", "enum": ["confirmed", "suspected", "absent", "unknown"] },
+            "covid_history":    { "type": "string", "enum": ["confirmed", "suspected", "absent", "unknown"] },
+            "prodrome_weight":  { "type": "number", "minimum": 0, "maximum": 1, "description": "선행 감염 기여 가중치" },
+            "prodrome_reasoning": { "type": "string" }
+          }
+        },
+        "negative_causality_index": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "대체원인에 의한 인과성 감소 지수. 0=백신 원인 가능성 높음, 1=대체원인이 지배적"
+        },
+        "confounders_identified": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "식별된 교란 요인 목록"
+        },
+        "ddx_reasoning": {
+          "type": "string",
+          "description": "감별진단 종합 추론"
+        },
+        "_passthrough": {
+          "type": "object",
+          "description": "Stage 1-3 출력 누적 전달"
+        }
+      }
+    },
+
+    "Stage5_IntegratorOutput": {
+      "description": "Stage 5 → Stage 6: NAM 2024 Shadow Scoring 및 최종 인과성 판정",
+      "type": "object",
+      "required": ["vaers_id", "causality_assessment", "nam2024_shadow_score", "final_determination"],
+      "properties": {
+        "vaers_id": { "type": "string" },
+        "causality_assessment": {
+          "type": "object",
+          "properties": {
+            "temporal_score":     { "type": "number", "minimum": 0, "maximum": 1, "description": "시간적 연관성 점수 (Stage 3)" },
+            "mechanistic_score":  { "type": "number", "minimum": 0, "maximum": 1, "description": "기전적 개연성 점수 (Stage 3)" },
+            "specificity_score":  { "type": "number", "minimum": 0, "maximum": 1, "description": "진단 특이성 점수 (Stage 2)" },
+            "alt_cause_score":    { "type": "number", "minimum": 0, "maximum": 1, "description": "대체원인 배제 점수 (1-NCI, Stage 4)" },
+            "composite_score":    { "type": "number", "minimum": 0, "maximum": 1, "description": "종합 인과성 점수" }
+          }
+        },
+        "nam2024_shadow_score": {
+          "type": "object",
+          "description": "NAM 2024 Shadow Scoring (심낭염 특별 규칙)",
+          "properties": {
+            "triggered":          { "type": "boolean", "description": "Shadow Scoring 적용 여부" },
+            "trigger_reason":     { "type": "string", "description": "트리거 사유 (brighton≤3 & no biomarker 등)" },
+            "original_grade":     { "type": "string", "description": "Shadow 적용 전 등급" },
+            "adjusted_grade":     { "type": "string", "description": "Shadow 적용 후 등급" },
+            "adjustment_reasoning": { "type": "string" }
+          }
+        },
+        "final_determination": {
+          "type": "object",
+          "properties": {
+            "grade": {
+              "type": "string",
+              "enum": ["A1", "A2", "B1", "B2", "C"],
+              "description": "A1=Consistent, A2=Probable, B1=Indeterminate, B2=Insufficient, C=Not related"
+            },
+            "grade_label": {
+              "type": "string",
+              "enum": ["Consistent causal", "Probable causal", "Indeterminate", "Insufficient evidence", "Not related"]
+            },
+            "confidence": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "key_factors": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "판정에 가장 큰 영향을 준 요인들"
+            }
+          }
+        },
+        "integrator_reasoning": {
+          "type": "string",
+          "description": "종합 판정 근거 서술"
+        },
+        "_passthrough": {
+          "type": "object",
+          "description": "Stage 1-4 출력 누적 전달"
+        }
+      }
+    },
+
+    "Stage6_AdvisorOutput": {
+      "description": "Stage 6: 최종 리포트 및 액션 플랜",
+      "type": "object",
+      "required": ["vaers_id", "executive_summary", "action_plan", "report_metadata"],
+      "properties": {
+        "vaers_id": { "type": "string" },
+        "executive_summary": {
+          "type": "string",
+          "description": "역학 조사관을 위한 1-2문단 요약"
+        },
+        "clinical_timeline": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "date":  { "type": "string" },
+              "event": { "type": "string" }
+            }
+          },
+          "description": "시간순 임상 타임라인"
+        },
+        "causality_verdict": {
+          "type": "object",
+          "properties": {
+            "grade":       { "type": "string" },
+            "grade_label": { "type": "string" },
+            "confidence":  { "type": "number" },
+            "one_liner":   { "type": "string", "description": "한 줄 판정 요약" }
+          }
+        },
+        "action_plan": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "priority":    { "type": "string", "enum": ["high", "medium", "low"] },
+              "action":      { "type": "string" },
+              "rationale":   { "type": "string" }
+            }
+          },
+          "description": "조사관을 위한 후속 조치 권고"
+        },
+        "evidence_quality": {
+          "type": "object",
+          "properties": {
+            "overall_grade":  { "type": "string", "enum": ["A", "B", "C", "D"] },
+            "strengths":      { "type": "array", "items": { "type": "string" } },
+            "limitations":    { "type": "array", "items": { "type": "string" } },
+            "data_gaps":      { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "report_metadata": {
+          "type": "object",
+          "properties": {
+            "generated_at":     { "type": "string", "format": "date-time" },
+            "pipeline_version": { "type": "string" },
+            "models_used": {
+              "type": "object",
+              "properties": {
+                "extractor":    { "type": "string" },
+                "validator":    { "type": "string" },
+                "auditor":      { "type": "string" },
+                "ddx":          { "type": "string" },
+                "integrator":   { "type": "string" },
+                "advisor":      { "type": "string" }
+              }
+            },
+            "total_tokens_used":  { "type": "integer" },
+            "total_latency_sec":  { "type": "number" }
+          }
+        },
+        "full_trace": {
+          "type": "object",
+          "description": "전체 파이프라인 추론 과정 (Traceable 원칙)",
+          "properties": {
+            "stage1_extraction":  { "$ref": "#/definitions/Stage1_ExtractorOutput" },
+            "stage2_validation":  { "$ref": "#/definitions/Stage2_ValidatorOutput" },
+            "stage3_audit":       { "$ref": "#/definitions/Stage3_AuditorOutput" },
+            "stage4_ddx":         { "$ref": "#/definitions/Stage4_DDxSpecialistOutput" },
+            "stage5_integration": { "$ref": "#/definitions/Stage5_IntegratorOutput" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Environment
+.env
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+.claude/
+
+# OS
+Thumbs.db
+.DS_Store
+NUL
+
+# Generated reports
+reports/*.md
+reports/*.docx
+
+# Results — only benchmark CSV is committed
+results/*
+!results/benchmark_*.csv
+!results/.gitkeep

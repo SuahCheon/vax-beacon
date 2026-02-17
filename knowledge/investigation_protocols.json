@@ -1,0 +1,277 @@
+{
+  "version": "4.3",
+  "protocols": {
+    "giant_cell_myocarditis": {
+      "label": "Giant cell myocarditis",
+      "why_suspected": "Typically flagged by new-onset ventricular arrhythmia (VT/VF), rapid heart failure, or AV block in patients with autoimmune comorbidities. GCM carries >70% mortality without immunosuppression — early diagnosis is critical.",
+      "investigations": [
+        {
+          "test": "Endomyocardial biopsy (EMB)",
+          "priority": "CRITICAL",
+          "rationale": "Gold standard for GCM diagnosis. Look for: multinucleated giant cells + lymphocytic infiltrate + myocyte necrosis.",
+          "indication": "New-onset VT/VF + autoimmune background + treatment non-response",
+          "expected_finding": "Multinucleated giant cells with extensive myocyte necrosis and mixed inflammatory infiltrate without well-formed granulomas",
+          "differential_from_vaccine": "Vaccine-induced myocarditis shows lymphocytic infiltrate only, without giant cells or extensive necrosis"
+        },
+        {
+          "test": "Cardiac MRI with LGE pattern analysis",
+          "priority": "CRITICAL",
+          "rationale": "Key imaging differentiator between GCM and vaccine-induced myocarditis based on late gadolinium enhancement pattern.",
+          "indication": "All suspected myocarditis cases with hemodynamic stability sufficient for MRI",
+          "expected_finding": "Diffuse or patchy mid-wall late gadolinium enhancement",
+          "differential_from_vaccine": "Vaccine-induced pattern: inferolateral subepicardial enhancement. GCM pattern: diffuse or patchy mid-wall enhancement. This differentiation is key for causality."
+        },
+        {
+          "test": "Serial troponin trajectory",
+          "priority": "HIGH",
+          "rationale": "Serial values (not single measurement) differentiate progressive vs self-limited myocarditis.",
+          "indication": "All myocarditis cases with elevated initial troponin",
+          "expected_finding": "GCM shows persistent or rising troponin without typical rise-and-fall pattern",
+          "differential_from_vaccine": "Vaccine-induced myocarditis typically shows troponin peak followed by resolution within days"
+        },
+        {
+          "test": "BNP/NT-proBNP",
+          "priority": "HIGH",
+          "rationale": "Tracks heart failure progression typical of GCM. Rising levels indicate worsening ventricular function.",
+          "indication": "All suspected GCM cases, especially with signs of heart failure",
+          "expected_finding": "Persistently elevated or rising BNP/NT-proBNP indicating progressive heart failure",
+          "differential_from_vaccine": "Vaccine-induced myocarditis shows mild elevation with rapid normalization"
+        },
+        {
+          "test": "Holter/event monitor for arrhythmia characterization",
+          "priority": "HIGH",
+          "rationale": "Characterize arrhythmia morphology to differentiate GCM from vaccine-induced patterns.",
+          "indication": "Any documented arrhythmia or palpitations in myocarditis setting",
+          "expected_finding": "Polymorphic VT or sustained monomorphic VT suggests GCM",
+          "differential_from_vaccine": "Sinus tachycardia or brief SVT is more typical of vaccine-induced myocarditis"
+        },
+        {
+          "test": "Treatment response assessment",
+          "priority": "MEDIUM",
+          "rationale": "GCM typically progresses despite standard heart failure therapy, while vaccine-induced is often self-limited.",
+          "indication": "Cases not responding to initial heart failure management",
+          "expected_finding": "Progressive deterioration despite ACE inhibitors, beta-blockers, and diuretics",
+          "differential_from_vaccine": "Vaccine-induced myocarditis typically shows clinical improvement within days with supportive care"
+        }
+      ]
+    },
+
+    "viral_etiology": {
+      "label": "Viral myocarditis (infectious)",
+      "why_suspected": "Prodromal symptoms (fever, URI, GI), lymphocytosis, or positive viral markers suggest infectious etiology preceding the cardiac event.",
+      "investigations": [
+        {
+          "test": "Comprehensive viral panel (PCR)",
+          "priority": "HIGH",
+          "rationale": "Direct identification of cardiotropic viruses. PCR for enterovirus, adenovirus, parvovirus B19, HHV-6, CMV, EBV; respiratory panel if URI symptoms.",
+          "indication": "Prodromal febrile illness, URI/GI symptoms preceding myocarditis",
+          "expected_finding": "Positive viral PCR confirming active viral infection concurrent with myocarditis",
+          "differential_from_vaccine": "Positive viral PCR with compatible viral prodrome supports viral rather than vaccine etiology"
+        },
+        {
+          "test": "Paired serology (acute and convalescent)",
+          "priority": "HIGH",
+          "rationale": "If acute PCR is negative, rising antibody titers on paired serology can confirm recent viral infection.",
+          "indication": "Suspected viral etiology with negative initial PCR",
+          "expected_finding": "4-fold rise in IgG titers between acute and convalescent samples (2-4 weeks apart)",
+          "differential_from_vaccine": "Seroconversion or significant titer rise confirms recent viral infection as alternative cause"
+        },
+        {
+          "test": "Cardiac MRI (Lake Louise criteria)",
+          "priority": "MEDIUM",
+          "rationale": "Viral myocarditis shows focal mid-wall LGE, often in inferolateral segments. Lake Louise criteria assess myocardial edema, hyperemia, and necrosis/fibrosis.",
+          "indication": "All suspected myocarditis cases with hemodynamic stability",
+          "expected_finding": "Focal mid-wall or subepicardial LGE with myocardial edema on T2-weighted imaging",
+          "differential_from_vaccine": "Viral myocarditis LGE pattern is similar to but not identical with vaccine pattern; clinical context (prodromal illness, viral testing) is more differentiating than imaging alone"
+        }
+      ]
+    },
+
+    "eosinophilic_myocarditis": {
+      "label": "Eosinophilic myocarditis",
+      "why_suspected": "Peripheral eosinophilia, recent new medication exposure, or hypersensitivity features suggest eosinophilic etiology.",
+      "investigations": [
+        {
+          "test": "Complete blood count with differential",
+          "priority": "HIGH",
+          "rationale": "Confirm peripheral eosinophilia. Eosinophil count >500/uL supports eosinophilic myocarditis.",
+          "indication": "All suspected eosinophilic myocarditis cases",
+          "expected_finding": "Peripheral eosinophilia (absolute eosinophil count >500/uL)",
+          "differential_from_vaccine": "Vaccine-induced myocarditis is not associated with peripheral eosinophilia; presence strongly favors eosinophilic etiology"
+        },
+        {
+          "test": "Endomyocardial biopsy (EMB)",
+          "priority": "CRITICAL",
+          "rationale": "Definitive diagnosis requires demonstration of eosinophilic infiltrate on biopsy.",
+          "indication": "Confirmed peripheral eosinophilia with myocarditis",
+          "expected_finding": "Eosinophilic infiltrate with myocyte necrosis on EMB",
+          "differential_from_vaccine": "Vaccine-induced myocarditis shows lymphocytic infiltrate without eosinophilic predominance"
+        },
+        {
+          "test": "Medication review and timeline",
+          "priority": "HIGH",
+          "rationale": "Identify recently started drugs as potential hypersensitivity triggers. Drug-induced eosinophilic myocarditis is the most common subtype.",
+          "indication": "All cases with eosinophilia and recent medication changes",
+          "expected_finding": "Temporal correlation between new medication start and symptom onset (typically 2-4 weeks)",
+          "differential_from_vaccine": "Identification of a culprit drug other than the vaccine provides an alternative explanation for the myocarditis"
+        }
+      ]
+    },
+
+    "toxin_ici_myocarditis": {
+      "label": "Toxin/ICI-induced myocarditis",
+      "why_suspected": "Active immune checkpoint inhibitor therapy, concurrent myositis, or recent cardiotoxic chemotherapy suggest drug-induced myocarditis.",
+      "investigations": [
+        {
+          "test": "Creatine kinase (CK) and troponin co-assessment",
+          "priority": "CRITICAL",
+          "rationale": "Concurrent CK and troponin elevation suggests myocarditis-myositis overlap syndrome characteristic of ICI toxicity.",
+          "indication": "Active ICI therapy with cardiac symptoms",
+          "expected_finding": "Elevated CK (skeletal muscle) alongside elevated troponin (cardiac), confirming dual-organ involvement",
+          "differential_from_vaccine": "Vaccine-induced myocarditis causes isolated troponin elevation without significant CK rise"
+        },
+        {
+          "test": "Cardiac MRI with tissue characterization",
+          "priority": "HIGH",
+          "rationale": "Assess myocardial edema, inflammation, and LGE pattern for ICI-related myocarditis.",
+          "indication": "All hemodynamically stable patients with suspected ICI myocarditis",
+          "expected_finding": "Myocardial edema on T2 mapping with variable LGE pattern",
+          "differential_from_vaccine": "ICI myocarditis LGE pattern can be variable; clinical context (ICI exposure) is the key differentiator"
+        },
+        {
+          "test": "Endomyocardial biopsy (EMB)",
+          "priority": "HIGH",
+          "rationale": "Definitive diagnosis showing lymphocytic infiltrate with CD8+ T-cell predominance characteristic of ICI myocarditis.",
+          "indication": "Hemodynamic instability or diagnostic uncertainty in ICI-treated patients",
+          "expected_finding": "Dense lymphocytic (CD8+ T-cell predominant) infiltrate with myocyte necrosis",
+          "differential_from_vaccine": "ICI myocarditis typically shows more intense and diffuse infiltrate than vaccine-induced myocarditis"
+        },
+        {
+          "test": "Treatment response to immunosuppression",
+          "priority": "MEDIUM",
+          "rationale": "ICI myocarditis typically responds to high-dose corticosteroids. Response confirms immune-mediated mechanism.",
+          "indication": "Confirmed or highly suspected ICI myocarditis",
+          "expected_finding": "Clinical improvement with high-dose methylprednisolone and ICI discontinuation",
+          "differential_from_vaccine": "Vaccine-induced myocarditis is typically self-limited without need for immunosuppression"
+        }
+      ]
+    },
+
+    "ischemic_heart_disease": {
+      "label": "Ischemic heart disease (CAD/MI)",
+      "why_suspected": "CAD risk factors, focal ECG changes, or prior coronary disease suggest ischemic rather than inflammatory etiology.",
+      "investigations": [
+        {
+          "test": "Coronary angiography or CT coronary angiogram",
+          "priority": "CRITICAL",
+          "rationale": "Definitive assessment of coronary anatomy to confirm or exclude obstructive coronary disease.",
+          "indication": "CAD risk factors with troponin elevation and focal ECG changes",
+          "expected_finding": "Significant coronary stenosis (>70%) or acute coronary occlusion",
+          "differential_from_vaccine": "Normal coronary arteries effectively rules out acute MI and supports inflammatory etiology (myocarditis)"
+        },
+        {
+          "test": "Serial troponin with rise-and-fall pattern analysis",
+          "priority": "HIGH",
+          "rationale": "Ischemic troponin pattern (rapid rise-and-fall) differs from inflammatory pattern (sustained elevation).",
+          "indication": "All cases with troponin elevation and suspected ischemic etiology",
+          "expected_finding": "Rapid rise-and-fall pattern typical of acute MI",
+          "differential_from_vaccine": "Myocarditis troponin tends to rise more gradually and remain elevated longer than acute MI pattern"
+        },
+        {
+          "test": "ECG with territorial ST analysis",
+          "priority": "HIGH",
+          "rationale": "Focal/territorial ST changes indicate ischemic origin; diffuse changes suggest myocarditis.",
+          "indication": "All cases with ST segment abnormalities",
+          "expected_finding": "ST changes localized to a single coronary territory (inferior, anterior, or lateral)",
+          "differential_from_vaccine": "Myocarditis typically shows diffuse or widespread ST elevation, often with PR depression (pericarditis component)"
+        }
+      ]
+    },
+
+    "covid19_related": {
+      "label": "COVID-19 related myocarditis",
+      "why_suspected": "Active or recent COVID-19 infection, MIS-C/MIS-A criteria, or elevated D-dimer suggest COVID-19 related myocardial injury.",
+      "investigations": [
+        {
+          "test": "SARS-CoV-2 PCR/antigen testing at symptom onset",
+          "priority": "CRITICAL",
+          "rationale": "Confirm or exclude active COVID-19 infection at the time of cardiac symptom onset.",
+          "indication": "All myocarditis cases during COVID-19 pandemic, especially with respiratory symptoms",
+          "expected_finding": "Positive SARS-CoV-2 PCR or antigen test confirming active infection",
+          "differential_from_vaccine": "Active COVID-19 infection at myocarditis onset supports COVID-related etiology rather than vaccine-induced"
+        },
+        {
+          "test": "Anti-nucleocapsid (anti-N) antibody",
+          "priority": "HIGH",
+          "rationale": "Anti-N antibody indicates prior natural COVID-19 infection (not vaccine-induced, as mRNA vaccines use spike protein). Positive anti-N suggests prior COVID exposure.",
+          "indication": "Post-vaccination myocarditis with uncertain COVID-19 history",
+          "expected_finding": "Positive anti-N antibody indicating prior natural COVID-19 infection",
+          "differential_from_vaccine": "Positive anti-N in recently vaccinated patient suggests prior COVID-19 that could contribute to cardiac inflammation"
+        },
+        {
+          "test": "D-dimer and inflammatory markers (ferritin, CRP, IL-6)",
+          "priority": "HIGH",
+          "rationale": "COVID-19 myocarditis often involves microvascular thrombosis and cytokine storm with markedly elevated inflammatory markers.",
+          "indication": "Confirmed or suspected COVID-19 with cardiac involvement",
+          "expected_finding": "Significantly elevated D-dimer, ferritin, and CRP suggesting hyperinflammatory/thrombotic state",
+          "differential_from_vaccine": "Vaccine-induced myocarditis typically shows mild CRP elevation without significant D-dimer rise or ferritin elevation"
+        },
+        {
+          "test": "MIS-C/MIS-A workup (complete)",
+          "priority": "HIGH",
+          "rationale": "Assess for multi-system inflammatory syndrome criteria if clinical picture suggests hyperinflammatory post-COVID-19 syndrome.",
+          "indication": "Multi-organ involvement following recent COVID-19, especially in pediatric patients",
+          "expected_finding": "Fever, multi-organ dysfunction, elevated inflammatory markers, cardiac involvement, and evidence of prior COVID-19",
+          "differential_from_vaccine": "MIS-C/MIS-A involves multi-organ inflammation beyond cardiac, which is not seen in vaccine-induced myocarditis"
+        },
+        {
+          "test": "SARS-CoV-2 nucleocapsid antibody",
+          "priority": "HIGH",
+          "rationale": "Differentiates prior natural infection from vaccination-only exposure. Nucleocapsid antibody is produced only after natural infection, not after mRNA vaccination (which produces only spike antibody).",
+          "indication": "When MIS-C or post-infectious myocarditis is suspected AND patient was recently vaccinated",
+          "expected_finding": "Positive = prior natural infection likely contributed; Negative = vaccine-triggered mechanism more likely",
+          "differential_from_vaccine": "Nucleocapsid-negative patient with recent vaccination and MIS-C presentation supports vaccine-triggered mechanism rather than infection-triggered"
+        },
+        {
+          "test": "MIS-C inflammatory panel (ferritin, D-dimer, fibrinogen, LDH)",
+          "priority": "HIGH",
+          "rationale": "MIS-C has a distinctive inflammatory pattern: markedly elevated ferritin (often >500), D-dimer, and fibrinogen with lymphopenia. This pattern differs from vaccine-induced myocarditis.",
+          "indication": "Pediatric/young adult with multi-organ involvement post-vaccination or post-infection",
+          "expected_finding": "Ferritin >500, D-dimer elevated, fibrinogen elevated with lymphopenia suggests MIS-C pattern",
+          "differential_from_vaccine": "Vaccine myocarditis typically shows milder inflammatory markers without the MIS-C pattern of markedly elevated ferritin/D-dimer. Presence of MIS-C pattern warrants nucleocapsid testing to determine trigger."
+        }
+      ]
+    },
+
+    "autoimmune_inflammatory": {
+      "label": "Autoimmune/inflammatory myocarditis",
+      "why_suspected": "Known autoimmune disease, positive autoimmune serologies, or multi-organ systemic inflammation suggest autoimmune-mediated cardiac involvement.",
+      "investigations": [
+        {
+          "test": "ANA, anti-dsDNA, complement levels (C3/C4)",
+          "priority": "HIGH",
+          "rationale": "Autoimmune serologies to confirm or exclude systemic autoimmune disease as the driver of myocarditis.",
+          "indication": "Known autoimmune disease or multi-organ inflammatory features with myocarditis",
+          "expected_finding": "Positive ANA (high titer), positive anti-dsDNA, or low complement levels indicating active autoimmune disease",
+          "differential_from_vaccine": "Positive autoimmune serologies with active systemic disease support autoimmune-mediated myocarditis rather than vaccine-induced"
+        },
+        {
+          "test": "ESR, CRP, ferritin for systemic inflammation",
+          "priority": "HIGH",
+          "rationale": "Assess degree of systemic inflammatory response. Markedly elevated inflammatory markers suggest systemic autoimmune flare.",
+          "indication": "Suspected autoimmune myocarditis with multi-organ involvement",
+          "expected_finding": "Markedly elevated ESR and CRP beyond what is expected for isolated myocarditis",
+          "differential_from_vaccine": "Vaccine-induced myocarditis shows mild to moderate CRP elevation; very high ESR/CRP/ferritin suggests systemic autoimmune process"
+        },
+        {
+          "test": "Endomyocardial biopsy (EMB)",
+          "priority": "MEDIUM",
+          "rationale": "Consider EMB for granulomatous disease (cardiac sarcoidosis) or to characterize the inflammatory infiltrate.",
+          "indication": "Systemic autoimmune disease with new cardiac involvement, especially suspected sarcoidosis",
+          "expected_finding": "Non-caseating granulomas (sarcoidosis), immune complex deposition (lupus), or specific inflammatory patterns",
+          "differential_from_vaccine": "Granulomatous or immune complex-mediated inflammation on biopsy definitively distinguishes from vaccine-induced lymphocytic myocarditis"
+        }
+      ]
+    }
+  }
+}
