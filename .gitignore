@@ -27,3 +27,7 @@ reports/*.docx
 results/*
 !results/benchmark_*.csv
 !results/.gitkeep
+
+# Docs — exclude PDFs and technical_overview (Kaggle-only)
+docs/*.pdf
+docs/technical_overview.md
