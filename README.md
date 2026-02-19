@@ -96,6 +96,8 @@ MIT
 
 [3] Altman NL, Berning AA, Mann SC, Quaife RA, Gill EA, Auerbach SR, Campbell TB, Bristow MR. Vaccination-Associated Myocarditis and Myocardial Injury. Circ Res. 2023;132(10):1338-1357. DOI: 10.1161/CIRCRESAHA.122.321881. PMID: 37167355.
 
+[4] Sexson Tejtel SK, Munoz FM, Al-Ammouri I, et al. Myocarditis and pericarditis: Case definition and guidelines for data collection, analysis, and presentation of immunization safety data. *Vaccine.* 2022;40(10):1499-1511. DOI: [10.1016/j.vaccine.2021.11.074](https://doi.org/10.1016/j.vaccine.2021.11.074). PMID: 35105494.
+
 ---
 
 *Vax-Beacon | MedGemma 4B (4-bit quantized, 3.2 GB VRAM) | N=100 VAERS Benchmark | RTX 4050 Consumer GPU*
