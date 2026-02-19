@@ -88,4 +88,14 @@ MIT
 
 ---
 
+## References
+
+[1] National Academies of Sciences, Engineering, and Medicine. *Evidence Review of the Adverse Effects of COVID-19 Vaccination and Intramuscular Vaccine Administration.* Washington, DC: The National Academies Press; 2024. DOI: 10.17226/27746. PMID: 39312602.
+
+[2] World Health Organization. *Causality Assessment of an Adverse Event Following Immunization (AEFI): User Manual for the Revised WHO Classification, Second Edition, 2019 Update.* Geneva: WHO; 2019. ISBN: 978-92-4-151699-0.
+
+[3] Altman NL, Berning AA, Mann SC, Quaife RA, Gill EA, Auerbach SR, Campbell TB, Bristow MR. Vaccination-Associated Myocarditis and Myocardial Injury. Circ Res. 2023;132(10):1338-1357. DOI: 10.1161/CIRCRESAHA.122.321881. PMID: 37167355.
+
+---
+
 *Vax-Beacon | MedGemma 4B (4-bit quantized, 3.2 GB VRAM) | N=100 VAERS Benchmark | RTX 4050 Consumer GPU*
