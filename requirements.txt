@@ -1,3 +1,12 @@
 anthropic>=0.40.0
 pandas>=2.0.0
 python-dotenv>=1.0.0
+
+# MedGemma backend (--backend medgemma)
+torch>=2.0.0
+transformers>=4.45.0
+accelerate>=0.20.0
+bitsandbytes>=0.43.0
+sentencepiece
+protobuf
+numpy

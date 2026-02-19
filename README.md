@@ -2,10 +2,10 @@
 
 **Vax-Beacon** is an intelligent decision-support pipeline designed to enhance the quality of Causality Assessment for Adverse Events Following Immunization (AEFI). It acts as a bridge between the sophisticated insights of **High-Cost Active Surveillance** (e.g., Nordic Cohort Studies) and the practical needs of **Field-Level Passive Surveillance**.
 
-## 🚀 Project Status: MedGemma Readiness
-* **Current Core:** Anthropic Claude 3.5 Sonnet / Haiku (Hybrid Pipeline)
-* **Target Environment:** Kaggle MedGemma Impact Challenge (Migration to MedGemma 27B/4B in progress)
-* **Objective:** This system is architected to maximize the performance of medically-tuned LLMs like **MedGemma** through a **Tiered Intelligence** framework.
+## Project Status: Dual-Backend (Claude + MedGemma 4B)
+* **Cloud Backend:** Anthropic Claude 3.5 Sonnet / Haiku (API)
+* **Local Backend:** Google MedGemma 4B (`google/medgemma-1.5-4b-it`, 4-bit quantization, ~3.2 GB VRAM)
+* **Architecture:** Hybrid Code+LLM pipeline — LLMs observe and reason, deterministic code computes and classifies
 
 ---
 
@@ -22,18 +22,30 @@ Vax-Beacon digitalizes the WHO AEFI algorithm across a 6-stage pipeline, special
 
 ---
 
-## 📊 Validation Results (N=100)
-Validated against 100 curated VAERS reports, Vax-Beacon demonstrates its role as a rigorous **Scientific Filter**:
+## Validation Results (N=100)
+Validated against 100 curated VAERS reports (myocarditis/pericarditis cohort).
 
-* **Rigorous Filtering (24% Early Exit):** Successfully halted 24% of ineligible cases (L4) to prevent speculative reasoning and demand better field data.
-* **Alternative Detection (27% Success):** Identified strong alternative etiologies in 27% of cases, significantly reducing misclassification risks.
-* **Actionable Guidance (100% Issuance):** Generated tailored investigation protocols for every case to improve report quality.
+### Claude 3.5 Sonnet (Cloud API)
+| WHO Category | Cases | % |
+|:---|:---|:---|
+| A1 (Consistent) | 41 | 41% |
+| C (Coincidental) | 27 | 27% |
+| Unclassifiable | 25 | 25% |
+| B2 (Indeterminate) | 5 | 5% |
+| Error | 2 | 2% |
 
-### WHO Category Distribution
-* **A1 (Consistent):** 43%
-* **C (Coincidental):** 27%
-* **Unclassifiable:** 25%
-* **B2 (Indeterminate):** 5%
+### MedGemma 4B (Local, 4-bit quantization)
+98/100 cases completed (2 timeout). Results: `results/benchmark_medgemma_final.csv`
+
+| WHO Category | Cases | % |
+|:---|:---|:---|
+| Unclassifiable | 47 | 48% |
+| A1 (Consistent) | 21 | 21% |
+| C (Coincidental) | 21 | 21% |
+| B2 (Indeterminate) | 9 | 9% |
+
+**Agreement rate:** 54.1% (Claude vs MedGemma on matched 98 cases).
+MedGemma classifies more conservatively, especially on data-sparse cases (temporal zone UNKNOWN).
 
 ---
 
@@ -58,7 +70,41 @@ An example of how Vax-Beacon guides field investigators to capture missing evide
 
 ---
 
-## 🔮 Future Roadmap: Tiered Intelligence with MedGemma
-We are preparing for a full migration to the MedGemma ecosystem on Kaggle:
-* **Heavy Reasoning:** **MedGemma 27B** (Powering Stage 3 DDx and Stage 5 Causality Synthesis)
-* **Edge Guidance:** **MedGemma 4B** (Optimized for Stage 1 Parsing and Stage 6 Real-time Field Reporting)
+## Local Execution (MedGemma 4B)
+
+### Requirements
+* Python 3.10+, CUDA-capable GPU (6+ GB VRAM recommended)
+* Hugging Face access token with MedGemma model agreement
+
+### Setup
+```bash
+pip install -r requirements.txt
+```
+
+### Run
+```bash
+# Windows
+set HF_TOKEN=hf_your_token_here
+python main.py --backend medgemma                     # All 100 cases
+python main.py --backend medgemma --case 1347846      # Single case
+python main.py --backend medgemma --resume            # Resume interrupted batch
+python main.py -i                                     # Interactive mode
+
+# Linux/Mac
+HF_TOKEN=hf_your_token_here python main.py --backend medgemma
+```
+
+### MedGemma Hybrid Architecture
+MedGemma 4B uses a Code+LLM hybrid approach to compensate for the smaller model size:
+
+* **Stage 1:** Code extracts structured VAERS fields (demographics, vaccine, timeline); LLM only analyzes narrative for clinical data. Keyword fallback catches abbreviations (cTnI, TTE, CMR, LGE, etc.)
+* **Stage 2:** Fully deterministic Brighton classification with enhanced string logic (positive ECG/MRI findings override "normal sinus rhythm" phrases)
+* **Stage 3A:** LLM generates open-ended clinical observations (category-grouped)
+* **Stage 3B-3D:** Deterministic DDx matching and NCI scoring
+* **Stage 5:** Code classifies via WHO decision tree; LLM only generates reasoning narrative
+* **Stage 6:** Code-only guidance templates with Knowledge DB injection (no LLM for MedGemma)
+
+### Known Limitations
+* ~2% timeout rate on long literature-series narratives (>4000 words)
+* Higher Unclassifiable rate vs Claude due to conservative temporal zone classification
+* Context window limitations on MedGemma 4B (~8K tokens effective)

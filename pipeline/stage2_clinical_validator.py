@@ -48,13 +48,28 @@ def run_stage2(icsr_data: dict) -> dict:
     ecg = clinical.get("ecg_findings")
     ecg_str = str(ecg).strip() if ecg else ""
     ecg_lower = ecg_str.lower()
+    # ECG abnormal: positive findings override "normal sinus rhythm"
+    _ecg_positive_findings = (
+        "abnormal" in ecg_lower
+        or "st elevation" in ecg_lower or "st-elevation" in ecg_lower
+        or "st depression" in ecg_lower or "st-depression" in ecg_lower
+        or "st change" in ecg_lower or "st segment" in ecg_lower
+        or "bundle branch block" in ecg_lower
+        or "t wave" in ecg_lower
+        or "pr depression" in ecg_lower
+    )
     ecg_abnormal = (
         ecg is not None
         and ecg_str != ""
-        and "normal" not in ecg_lower
-        and "negative" not in ecg_lower
-        and "unremarkable" not in ecg_lower
         and not _is_pending_status(ecg_str)
+        and (
+            _ecg_positive_findings
+            or (
+                "normal" not in ecg_lower
+                and "negative" not in ecg_lower
+                and "unremarkable" not in ecg_lower
+            )
+        )
     )
 
     echo = clinical.get("echo_findings")
@@ -72,20 +87,40 @@ def run_stage2(icsr_data: dict) -> dict:
 
     mri = clinical.get("cardiac_mri")
     mri_str = str(mri).strip() if mri else ""
+    # MRI positive: LGE/enhancement/edema keywords override "normal LVEF"
+    mri_lower = mri_str.lower()
+    _mri_positive_findings = (
+        "abnormal" in mri_lower
+        or "enhancement" in mri_lower
+        or "lge" in mri_lower
+        or "edema" in mri_lower or "oedema" in mri_lower
+        or "myocarditis" in mri_lower
+    )
     mri_positive = (
         mri is not None
         and mri_str != ""
-        and "normal" not in mri_str.lower()
-        and "negative" not in mri_str.lower()
         and not _is_pending_status(mri_str)
+        and (
+            _mri_positive_findings
+            or (
+                "normal" not in mri_lower
+                and "negative" not in mri_lower
+            )
+        )
     )
 
-    # Histopathology (endomyocardial biopsy)
+    # Histopathology (endomyocardial biopsy) — with negation detection
     histopathology = False
     symptoms_list = event.get("symptoms", [])
     narrative = event.get("narrative_summary", "")
     full_text = (" ".join(symptoms_list) + " " + narrative).lower()
-    if any(term in full_text for term in ["biopsy", "endomyocardial", "histopath"]):
+    _biopsy_mentioned = any(term in full_text for term in ["biopsy", "endomyocardial", "histopath"])
+    _biopsy_negated = any(neg in full_text for neg in [
+        "not performed", "no biopsy", "without biopsy", "biopsy was not",
+        "no endomyocardial", "without pathological evidence",
+        "biopsy not", "not done",
+    ])
+    if _biopsy_mentioned and not _biopsy_negated:
         histopathology = True
 
     # Compatible symptoms

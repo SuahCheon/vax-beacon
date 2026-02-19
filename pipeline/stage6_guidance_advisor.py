@@ -7,6 +7,11 @@ Handles both normal flow and Early Exit (Brighton L4) cases.
 v4 change: DDx-specific investigation guidance is loaded from
 knowledge/investigation_protocols.json at runtime instead of
 being hardcoded in the prompt.
+
+MedGemma Hybrid:
+  - Code builds complete JSON template for all 4 modes
+  - LLM writes only the officer_summary (2-sentence plain text)
+  - Fallback: code generates template summary if LLM fails
 """
 
 import json
@@ -263,18 +268,21 @@ def _run_brighton_exit(llm, icsr_data: dict, brighton_data: dict) -> dict:
         "missing_criteria_analysis": missing,
     }
 
-    prompt = STAGE6_BRIGHTON_EXIT
-
-    result = llm.query_json(
-        system_prompt=prompt,
-        user_message=(
-            f"Generate Brighton Level 4 exit guidance for this {condition} case.\n\n"
-            f"Missing criteria analysis (code-identified):\n"
-            f"{json.dumps(missing, indent=2)}\n\n"
-            f"Full case data:\n"
-            f"{json.dumps(combined_input, indent=2)}"
-        ),
-    )
+    # MedGemma: code-only fallback (LLM too unreliable for structured output)
+    if llm.backend == "medgemma":
+        result = _brighton_exit_code_fallback(icsr_data, brighton_data, missing, condition)
+    else:
+        prompt = STAGE6_BRIGHTON_EXIT
+        result = llm.query_json(
+            system_prompt=prompt,
+            user_message=(
+                f"Generate Brighton Level 4 exit guidance for this {condition} case.\n\n"
+                f"Missing criteria analysis (code-identified):\n"
+                f"{json.dumps(missing, indent=2)}\n\n"
+                f"Full case data:\n"
+                f"{json.dumps(combined_input, indent=2)}"
+            ),
+        )
 
     # Ensure standardized Unclassifiable output fields
     result["who_category"] = "Unclassifiable"
@@ -284,6 +292,42 @@ def _run_brighton_exit(llm, icsr_data: dict, brighton_data: dict) -> dict:
     result["missing_brighton_criteria"] = missing
 
     return result
+
+
+def _brighton_exit_code_fallback(icsr_data, brighton_data, missing, condition):
+    """Code-only Brighton L4 exit guidance (MedGemma fallback)."""
+    vaers_id = icsr_data.get("vaers_id")
+
+    # Build investigative gaps from missing criteria
+    gaps = []
+    required_tests = []
+    for m in missing[:3]:  # Top-3 rule
+        gaps.append({
+            "gap": m["label"],
+            "action": f"Obtain {', '.join(m['tests_needed'][:2])}",
+            "priority": "HIGH" if m["criterion"] in ("troponin_elevated", "cardiac_mri_positive") else "MEDIUM",
+        })
+        for t in m["tests_needed"][:2]:
+            if t not in required_tests:
+                required_tests.append(t)
+
+    # Build recommended actions
+    actions = []
+    for m in missing[:3]:
+        actions.append(f"Order {m['tests_needed'][0]} to assess {m['label'].lower()}")
+
+    return {
+        "vaers_id": vaers_id,
+        "overall_risk_signal": "UNCLASSIFIABLE",
+        "investigative_gaps": gaps[:3],
+        "required_tests": required_tests[:3],
+        "recommended_actions": actions[:3],
+        "officer_summary": (
+            f"Brighton Level 4 ({condition}): Insufficient diagnostic evidence. "
+            f"{len(missing)} criteria missing. Priority: {', '.join(m['label'] for m in missing[:2])}."
+        ),
+        "confidence": "DETERMINISTIC",
+    }
 
 
 def run_stage6(
@@ -344,6 +388,13 @@ def _run_normal(
     temporal_data, causality_data, protocol,
 ) -> dict:
     """Normal flow: full pipeline completed with protocol-injected prompt."""
+    # MedGemma: code-only template + LLM officer_summary
+    if llm.backend == "medgemma":
+        return _normal_code_template(
+            llm, icsr_data, brighton_data, ddx_data,
+            temporal_data, causality_data, protocol,
+        )
+
     combined_input = {
         "icsr": icsr_data,
         "stage2_brighton": brighton_data,
@@ -384,11 +435,142 @@ def _run_normal(
     return result
 
 
+def _normal_code_template(
+    llm, icsr_data, brighton_data, ddx_data,
+    temporal_data, causality_data, protocol,
+) -> dict:
+    """MedGemma hybrid: code builds full JSON, LLM writes officer_summary only."""
+    vaers_id = icsr_data.get("vaers_id")
+    who_category = (causality_data or {}).get("who_category", "?")
+    brighton_level = brighton_data.get("brighton_level", "?")
+    condition = brighton_data.get("condition_type", "myocarditis")
+    demographics = icsr_data.get("demographics", {})
+    age = demographics.get("age", "?")
+    sex = demographics.get("sex", "?")
+    temporal_assessment = (temporal_data or {}).get("temporal_assessment", {})
+    temporal_zone = temporal_assessment.get("temporal_zone", "?")
+    days_to_onset = temporal_assessment.get("days_to_onset", "?")
+    max_nci = (ddx_data or {}).get("max_nci_score", 0)
+    dominant_alt = (ddx_data or {}).get("dominant_alternative", "NONE")
+    known_ae = (temporal_data or {}).get("known_ae_assessment", {}).get("is_known_ae", False)
+
+    # Build investigative gaps from Stage 3 information_gaps
+    info_gaps = (ddx_data or {}).get("information_gaps", [])
+    investigative_gaps = []
+    for gap_text in info_gaps[:3]:
+        investigative_gaps.append({
+            "gap": gap_text[:80],
+            "priority": "HIGH",
+            "action": f"Investigate: {gap_text[:50]}",
+        })
+    if not investigative_gaps:
+        investigative_gaps.append({
+            "gap": "Standard cardiac follow-up",
+            "priority": "MEDIUM",
+            "action": "Schedule cardiac follow-up as appropriate",
+        })
+
+    # Recommended actions
+    recommended_actions = []
+    if who_category == "A1":
+        recommended_actions = [
+            "Standard post-myocarditis cardiac follow-up",
+            "Report to national pharmacovigilance center",
+            "Consider cardiac clearance before exercise",
+        ]
+    elif who_category == "C":
+        recommended_actions = [
+            f"Investigate dominant alternative: {dominant_alt}",
+            "Complete differential diagnosis workup",
+            "Standard cardiac follow-up",
+        ]
+    elif who_category in ("B1", "B2"):
+        recommended_actions = [
+            "Additional investigations to resolve ambiguity",
+            "Report to national pharmacovigilance center",
+            "Cardiac follow-up recommended",
+        ]
+    else:
+        recommended_actions = [
+            "Obtain missing diagnostic data",
+            "Consider re-assessment when data available",
+        ]
+
+    # Risk signal
+    risk_map = {"A1": "HIGH", "B1": "MEDIUM", "B2": "MEDIUM", "C": "LOW", "Unclassifiable": "LOW"}
+    risk_signal = risk_map.get(who_category, "MEDIUM")
+
+    # Quality flags
+    quality_flags = {
+        "data_completeness": "COMPLETE" if not (ddx_data or {}).get("information_gaps") else "PARTIAL",
+        "diagnostic_certainty": "HIGH" if brighton_level <= 2 else "MEDIUM" if brighton_level == 3 else "LOW",
+        "temporal_clarity": "CLEAR" if days_to_onset is not None else "MISSING",
+    }
+
+    # Officer summary — code-only template (no LLM)
+    officer_summary = _build_officer_summary(who_category, condition, age, sex, days_to_onset, dominant_alt)
+
+    return {
+        "vaers_id": vaers_id,
+        "overall_risk_signal": risk_signal,
+        "investigative_gaps": investigative_gaps[:3],
+        "recommended_actions": recommended_actions[:3],
+        "escalation_needed": who_category in ("A1", "B1"),
+        "escalation_reason": f"WHO {who_category} — requires pharmacovigilance review" if who_category in ("A1", "B1") else None,
+        "quality_flags": quality_flags,
+        "officer_summary": officer_summary,
+        "confidence": "DETERMINISTIC",
+    }
+
+
+def _build_officer_summary(who_category, condition, age, sex, days_to_onset, dominant_alt="NONE") -> str:
+    """Generate officer summary from code template. No LLM call."""
+    age_str = f"{int(age)}-year-old" if age and age != "?" else "Patient"
+    sex_str = "male" if sex == "M" else "female" if sex == "F" else ""
+    onset_str = f" {int(days_to_onset)} days after vaccination" if days_to_onset and days_to_onset != "?" else ""
+    who_label = _who_category_label(who_category)
+
+    sentence1 = f"{age_str} {sex_str} {condition}{onset_str} classified as {who_category} ({who_label})."
+
+    if dominant_alt and dominant_alt != "NONE":
+        sentence2 = f"Alternative cause: {dominant_alt}. Directed workup recommended."
+    elif who_category == "A1":
+        sentence2 = "No dominant alternative identified. Standard cardiac follow-up recommended."
+    elif who_category in ("B1", "B2"):
+        sentence2 = "No dominant alternative identified. Additional investigations needed."
+    else:
+        sentence2 = "Standard follow-up recommended."
+
+    return f"{sentence1} {sentence2}"
+
+
+def _who_category_label(who_category: str) -> str:
+    """Short WHO category label for officer summary."""
+    labels = {
+        "A1": "Consistent causal association",
+        "A2": "Consistent causal association — product defect",
+        "A3": "Consistent causal association — immunization error",
+        "A4": "Consistent causal association — stress response",
+        "B1": "Indeterminate",
+        "B2": "Indeterminate — conflicting evidence",
+        "C": "Coincidental",
+        "Unclassifiable": "Unclassifiable — insufficient data",
+    }
+    return labels.get(who_category, who_category)
+
+
 def _run_onset_unknown(
     llm, icsr_data, brighton_data, ddx_data,
     temporal_data, causality_data, protocol,
 ) -> dict:
     """Onset unknown: Unclassifiable but full pipeline data available."""
+    # MedGemma: code-only template + LLM officer_summary
+    if llm.backend == "medgemma":
+        return _onset_unknown_code_template(
+            llm, icsr_data, brighton_data, ddx_data,
+            temporal_data, causality_data,
+        )
+
     combined_input = {
         "icsr": icsr_data,
         "stage2_brighton": brighton_data,
@@ -418,18 +600,68 @@ def _run_onset_unknown(
     return result
 
 
-def _run_early_exit(llm, icsr_data, brighton_data) -> dict:
-    """Early Exit: Brighton Level 4, insufficient diagnostic evidence."""
-    combined_input = {
-        "icsr": icsr_data,
-        "stage2_brighton": brighton_data,
+def _onset_unknown_code_template(
+    llm, icsr_data, brighton_data, ddx_data,
+    temporal_data, causality_data,
+) -> dict:
+    """MedGemma hybrid: code builds onset-unknown template, LLM writes summary."""
+    vaers_id = icsr_data.get("vaers_id")
+    condition = brighton_data.get("condition_type", "myocarditis")
+    brighton_level = brighton_data.get("brighton_level", "?")
+    demographics = icsr_data.get("demographics", {})
+    age = demographics.get("age", "?")
+    sex = demographics.get("sex", "?")
+    max_nci = (ddx_data or {}).get("max_nci_score", 0)
+    known_ae = (temporal_data or {}).get("known_ae_assessment", {}).get("is_known_ae", False)
+
+    # Possible categories once onset known
+    possible = {}
+    if known_ae:
+        possible = {"if_strong_causal": "A1", "if_plausible": "B2", "if_unlikely": "C"}
+    else:
+        possible = {"if_strong_causal": "B1", "if_plausible": "B2", "if_unlikely": "C"}
+    if max_nci >= 0.7:
+        possible = {"if_strong_causal": "C", "if_plausible": "C", "if_unlikely": "C"}
+
+    age_str = f"{int(age)}-year-old" if age and age != "?" else "Patient"
+    sex_str = "male" if sex == "M" else "female" if sex == "F" else ""
+    officer_summary = (
+        f"{age_str} {sex_str} {condition} classified as Unclassifiable due to unknown onset date. "
+        f"Contact reporter to establish symptom onset timing for definitive WHO classification."
+    )
+
+    return {
+        "vaers_id": vaers_id,
+        "overall_risk_signal": "MEDIUM",
+        "who_category": "Unclassifiable",
+        "unclassifiable_reason": "onset_unknown",
+        "mode": "onset_unknown",
+        "early_exit": False,
+        "what_is_known": f"Brighton L{brighton_level} {condition}, NCI {max_nci:.2f}",
+        "what_is_missing": ["Onset date (CRITICAL)", "Temporal assessment"],
+        "onset_verification": {
+            "priority": "CRITICAL",
+            "query_text": "Contact reporter to establish exact symptom onset date.",
+            "impact": "Onset date required for WHO temporal assessment.",
+        },
+        "possible_categories_once_onset_known": possible,
+        "investigative_gaps": [
+            {"gap": "Onset date unknown", "priority": "CRITICAL", "action": "Contact reporter for symptom onset date"},
+        ],
+        "recommended_actions": [
+            "Verify onset date with reporter",
+            "Re-assess once onset date is established",
+        ],
+        "reassessment_potential": "High — once onset date is known, definitive classification is possible.",
+        "escalation_needed": False,
+        "escalation_reason": None,
+        "quality_flags": {
+            "data_completeness": "PARTIAL",
+            "diagnostic_certainty": "MEDIUM",
+            "temporal_clarity": "MISSING",
+        },
+        "officer_summary": officer_summary,
+        "confidence": "DETERMINISTIC",
     }
 
-    result = llm.query_json(
-        system_prompt=STAGE6_EARLY_EXIT,
-        user_message=(
-            "Generate Early Exit report for this Brighton Level 4 case:\n\n"
-            f"{json.dumps(combined_input, indent=2)}"
-        ),
-    )
-    return result
+

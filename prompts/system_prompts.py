@@ -99,15 +99,88 @@ RULES:
   false when onset is from explicit dates or specific day counts, null when onset is unknown.
 - richness_score: 1 = minimal data, 10 = comprehensive with labs, imaging, follow-up.
 - NEVER fill in data that is not explicitly stated in the report.
+
+=== EXAMPLE ===
+INPUT: "14M, 3d post-Pfizer D2. Chest pain. Troponin elevated. MRI/Echo/EKG done. Dx: myocarditis. Hx: asthma."
+OUTPUT: {"vaers_id":9999999,"demographics":{"age":14.0,"sex":"M","state":null},"vaccine":{"name":"COVID19 (PFIZER)","manufacturer":"PFIZER","dose_number":2,"vaccination_date":null,"lot_number":null},"event":{"onset_date":null,"days_to_onset":3.0,"onset_approximate":false,"primary_diagnosis":"myocarditis","symptoms":["chest pain"],"narrative_summary":"14M chest pain 3d post-Pfizer D2. Troponin elevated. Dx myocarditis."},"clinical_data":{"troponin":{"value":"elevated","elevated":true},"bnp_probnp":{"value":null,"elevated":null},"crp_esr":{"value":null,"elevated":null},"ecg_findings":"performed","echo_findings":"performed","cardiac_mri":"performed","catheterization":null,"other_labs":null},"medical_history":{"prior_conditions":["asthma"],"current_illness":null,"medications":[],"allergies":[]},"outcomes":{"hospitalized":true,"hospital_days":null,"er_visit":true,"life_threatening":null,"died":false,"recovered":null},"data_quality":{"narrative_length":45,"missing_critical_fields":[],"richness_score":5}}
+=== END EXAMPLE ===
+Now process the report below. Return ONLY JSON.
 """
 
 # ============================================================
-# STAGE 3: DDx Specialist — NOW LOGIC-AUGMENTED
+# STAGE 1 (MedGemma): Focused narrative clinical data extraction
+# Code handles structured fields; LLM only analyzes narrative text
 # ============================================================
-# Stage 3 prompt is defined inside pipeline/stage3_ddx_specialist.py
-# as MARKER_EXTRACTION_PROMPT (Boolean marker extraction only).
-# NCI scores are computed by the deterministic NCIEngine.
-# This decoupling ensures 100% reproducibility.
+STAGE1_ICSR_EXTRACTOR_MEDGEMMA = """Extract clinical data from this medical narrative. Output ONLY JSON.
+
+EXAMPLE:
+INPUT: "Chest pain. Troponin 4.2 elevated. Echo EF 55%. ECG ST changes. MRI positive. CRP 52."
+OUTPUT: {"clinical_data":{"troponin":{"value":"4.2","elevated":true},"bnp_probnp":{"value":null,"elevated":null},"crp_esr":{"value":"52","elevated":true},"ecg_findings":"ST changes","echo_findings":"EF 55%","cardiac_mri":"positive","catheterization":null,"other_labs":null},"event":{"narrative_summary":"Chest pain with elevated troponin. Echo EF 55%. ECG ST changes. MRI positive."}}
+
+Now extract:
+"""
+
+# ============================================================
+# STAGE 3A (MedGemma): Focused clinical observation from keywords
+# Code pre-extracts keywords; LLM writes brief observation text
+# ============================================================
+STAGE3A_CLINICAL_OBSERVER_MEDGEMMA = """You are a cardiac pathologist. Given clinical keywords found in a VAERS report, write brief clinical observations.
+
+For each keyword, write ONE sentence describing the clinical significance.
+Output plain text, one observation per line. Format: "KEYWORD: significance"
+
+EXAMPLE:
+INPUT: troponin_elevated, ecg_performed, chest_pain
+OUTPUT:
+troponin_elevated: Elevated cardiac troponin indicates myocardial injury.
+ecg_performed: ECG was performed for cardiac evaluation.
+chest_pain: Chest pain is a cardinal symptom of myocarditis.
+"""
+
+# ============================================================
+# STAGE 3C (MedGemma): Focused plausibility for matched markers
+# Code builds skeleton; LLM writes brief rationale text only
+# ============================================================
+STAGE3C_PLAUSIBILITY_MEDGEMMA = """You are a cardiac pathologist. For each clinical marker, write a brief biological rationale (max 10 words).
+
+Format each line as: "MARKER: rationale"
+
+EXAMPLE:
+INPUT: fever_reported, positive_viral_pcr
+OUTPUT:
+fever_reported: Systemic inflammation suggesting infectious prodrome.
+positive_viral_pcr: Confirmed viral infection as myocarditis cause.
+"""
+
+# ============================================================
+# STAGE 5 (MedGemma): Explain WHO classification in plain text
+# Code builds full JSON; LLM writes 2-3 sentence reasoning only
+# ============================================================
+STAGE5_REASONING_MEDGEMMA = """You are a WHO AEFI assessment expert. Explain in 2-3 sentences why this WHO category was assigned. Do NOT output JSON.
+
+EXAMPLE:
+INPUT: WHO=A1, Brighton L1, NCI=0.05, temporal=STRONG_CAUSAL (3d), known_ae=True
+OUTPUT: This case is classified A1 because myocarditis is an established adverse event of mRNA vaccines, onset at 3 days falls within the strong causal window, and no significant alternative etiology was identified (NCI 0.05).
+"""
+
+# ============================================================
+# STAGE 6 (MedGemma): Write officer summary in plain text
+# Code builds full JSON template; LLM writes 2-sentence summary only
+# ============================================================
+STAGE6_SUMMARY_MEDGEMMA = """You are a regulatory science advisor. Write a 2-sentence plain-language summary for a surveillance officer. Do NOT output JSON.
+
+EXAMPLE:
+INPUT: WHO=A1, Brighton L1, myocarditis, 14M, onset 3d post-Pfizer dose 2, NCI=0.05
+OUTPUT: This 14-year-old male developed myocarditis 3 days after Pfizer dose 2, consistent with established vaccine-associated myocarditis (WHO A1). No significant alternative cause was identified; standard post-myocarditis cardiac follow-up is recommended.
+"""
+
+# ============================================================
+# STAGE 3: Two-Pass DDx (v4)
+# ============================================================
+# Stage 3 prompts are defined inside their respective pipeline files:
+#   stage3a_clinical_observer.py — open-ended clinical observation
+#   stage3c_plausibility.py — focused marker plausibility assessment
+# Stage 3B (DDx Matcher) and 3D (NCI Calculator) are deterministic code.
 
 # ============================================================
 # STAGE 5: Causality Assessor (LLM)
@@ -250,8 +323,7 @@ Return ONLY valid JSON:
     {
       "gap": "<specific missing data>",
       "priority": "<CRITICAL/HIGH/MEDIUM/LOW>",
-      "action": "<specific recommended action>",
-      "impact_on_classification": "<how this could change the WHO category>"
+      "action": "<max 15 words recommended action>"
     }
   ],
   "recommended_actions": ["<action1>", "<action2>", ...],
@@ -262,8 +334,15 @@ Return ONLY valid JSON:
     "diagnostic_certainty": "<HIGH/MEDIUM/LOW>",
     "temporal_clarity": "<CLEAR/AMBIGUOUS/MISSING>"
   },
-  "officer_summary": "<2-3 sentence plain-language summary for the surveillance officer. When a specific alternative diagnosis is suspected, name it and explain in plain language why it matters and what needs to happen next.>"
+  "officer_summary": "<max 2 sentences plain-language summary>"
 }
+
+=== OUTPUT SIZE LIMITS (MANDATORY) ===
+- investigative_gaps: MAX 3 items. Pick the 3 highest-priority gaps only.
+  Each item has exactly 3 fields: gap, priority, action.
+- action: MAX 15 words per item.
+- officer_summary: MAX 2 sentences.
+- recommended_actions: MAX 3 items.
 
 RULES:
 - Focus on ACTIONABLE gaps — what can the officer actually investigate?
@@ -274,9 +353,8 @@ RULES:
 - For B2 cases: clearly state that the classification is indeterminate because
   BOTH vaccine causation AND the alternative remain unconfirmed, and specify
   which investigations would resolve the ambiguity in each direction.
-- When an investigation protocol is provided, you MUST include ALL listed
-  investigations with their priority levels in your investigative_gaps.
-  Include the differential_from_vaccine information in the action field.
+- When an investigation protocol is provided, include the highest-priority
+  investigations in your investigative_gaps (max 3 total).
 - Do NOT give generic recommendations. Match the investigation to the specific DDx.
 
 When epistemic_uncertainty is high (>= 0.4), explicitly flag that diagnostic uncertainty
@@ -306,8 +384,8 @@ Return ONLY valid JSON:
   "diagnostic_deficiencies": [
     {
       "missing_test": "<specific test not documented>",
-      "importance": "<why this test matters for Brighton classification>",
-      "action": "<recommended follow-up>"
+      "importance": "<why this test matters>",
+      "action": "<max 15 words recommended follow-up>"
     }
   ],
   "minimum_requirements_for_reassessment": [
@@ -318,8 +396,14 @@ Return ONLY valid JSON:
     "diagnostic_certainty": "LOW",
     "temporal_clarity": "<CLEAR/AMBIGUOUS/MISSING>"
   },
-  "officer_summary": "<2-3 sentence plain-language explanation for the surveillance officer>"
+  "officer_summary": "<max 2 sentences plain-language explanation>"
 }
+
+=== OUTPUT SIZE LIMITS (MANDATORY) ===
+- diagnostic_deficiencies: MAX 3 items.
+- action: MAX 15 words per item.
+- officer_summary: MAX 2 sentences.
+- minimum_requirements_for_reassessment: MAX 3 items.
 
 RULES:
 - Be specific about which tests are missing (troponin, ECG, Echo, MRI, etc.)
@@ -348,36 +432,43 @@ Your task:
 Return ONLY valid JSON:
 {
   "vaers_id": <integer>,
-  "overall_risk_signal": "<HIGH/MEDIUM/LOW — based on available clinical information>",
+  "overall_risk_signal": "<HIGH/MEDIUM/LOW>",
   "who_category": "Unclassifiable",
   "unclassifiable_reason": "brighton_insufficient",
-  "what_is_known": "<summary of what IS documented in the case: symptoms, tests performed, results>",
-  "what_is_missing": ["<list of missing key data points>"],
+  "what_is_known": "<1 sentence summary of documented data>",
+  "what_is_missing": ["<max 3 missing data points>"],
   "diagnostic_deficiencies": [
     {
       "missing_criterion": "<Brighton criterion name>",
-      "missing_test": "<specific test not documented>",
+      "missing_test": "<specific test>",
       "priority": "<CRITICAL/HIGH/MEDIUM>",
-      "importance": "<why this test matters for Brighton classification>",
-      "action": "<specific recommended follow-up action>",
-      "achievable_level": "<what Brighton Level becomes possible if this test is obtained>"
+      "importance": "<why this test matters>",
+      "action": "<max 15 words follow-up action>",
+      "achievable_level": "<Brighton Level achievable>"
     }
   ],
   "fastest_path_to_classification": {
-    "target_level": "<most realistic Brighton level achievable>",
-    "required_tests": ["<ordered list of tests needed>"],
-    "explanation": "<brief explanation of the most efficient diagnostic pathway>"
+    "target_level": "<most realistic Brighton level>",
+    "required_tests": ["<max 3 tests>"],
+    "explanation": "<1 sentence>"
   },
-  "alternative_diagnoses": "<if available data suggests the condition might NOT be myocarditis/pericarditis, state what else it could be and why>",
-  "recommended_actions": ["<prioritized action list>"],
-  "reassessment_potential": "<what would happen if the missing data were obtained — likely WHO category>",
+  "alternative_diagnoses": "<1 sentence or null>",
+  "recommended_actions": ["<max 3 prioritized actions>"],
+  "reassessment_potential": "<1 sentence>",
   "quality_flags": {
     "data_completeness": "MINIMAL",
     "diagnostic_certainty": "LOW",
     "temporal_clarity": "<CLEAR/AMBIGUOUS/MISSING>"
   },
-  "officer_summary": "<2-3 sentence plain-language explanation for the surveillance officer. Explain what tests are needed and why the case cannot be classified yet. Be specific about the next steps.>"
+  "officer_summary": "<max 2 sentences>"
 }
+
+=== OUTPUT SIZE LIMITS (MANDATORY) ===
+- diagnostic_deficiencies: MAX 3 items.
+- action: MAX 15 words per item.
+- officer_summary: MAX 2 sentences.
+- recommended_actions: MAX 3 items.
+- required_tests: MAX 3 items.
 
 RULES:
 - Use the code-identified missing criteria list as your starting point
@@ -411,28 +502,27 @@ Return ONLY valid JSON:
   "overall_risk_signal": "<HIGH/MEDIUM/LOW>",
   "who_category": "Unclassifiable",
   "unclassifiable_reason": "onset_unknown",
-  "what_is_known": "<summary of what IS documented: symptoms, tests, Brighton level, DDx findings from Stages 1-5>",
-  "what_is_missing": ["Onset date (CRITICAL)", "<other missing data points>"],
+  "what_is_known": "<1 sentence summary of documented data>",
+  "what_is_missing": ["Onset date (CRITICAL)", "<max 2 other items>"],
   "onset_verification": {
     "priority": "CRITICAL",
-    "query_text": "Contact reporter to establish exact symptom onset date. Ask: When did you FIRST notice any cardiac symptoms (chest pain, shortness of breath, palpitations, unusual fatigue)? Was this before or after vaccination? How many days after vaccination?",
-    "impact": "Onset date is required for WHO AEFI temporal assessment. Once established, the case can be reclassified from Unclassifiable to a definitive WHO category."
+    "query_text": "Contact reporter to establish exact symptom onset date. Ask: When did cardiac symptoms first appear relative to vaccination?",
+    "impact": "Onset date required for WHO temporal assessment and definitive classification."
   },
   "possible_categories_once_onset_known": {
-    "if_strong_causal": "<what WHO category would result given current NCI and known_ae status>",
-    "if_plausible": "<what WHO category would result>",
-    "if_unlikely": "<what WHO category would result>"
+    "if_strong_causal": "<WHO category>",
+    "if_plausible": "<WHO category>",
+    "if_unlikely": "<WHO category>"
   },
   "investigative_gaps": [
     {
       "gap": "<specific missing data>",
       "priority": "<CRITICAL/HIGH/MEDIUM/LOW>",
-      "action": "<specific recommended action>",
-      "impact_on_classification": "<how this could change the WHO category>"
+      "action": "<max 15 words recommended action>"
     }
   ],
-  "recommended_actions": ["<action1>", "<action2>", ...],
-  "reassessment_potential": "<what would happen if onset date were obtained — likely WHO category based on current DDx/NCI evidence>",
+  "recommended_actions": ["<max 3 actions>"],
+  "reassessment_potential": "<1 sentence>",
   "escalation_needed": <true/false>,
   "escalation_reason": "<reason or null>",
   "quality_flags": {
@@ -440,8 +530,14 @@ Return ONLY valid JSON:
     "diagnostic_certainty": "<HIGH/MEDIUM/LOW>",
     "temporal_clarity": "MISSING"
   },
-  "officer_summary": "<2-3 sentence plain-language summary. State that onset date is unknown and must be verified before classification is possible. Mention what the likely classification would be if onset is within the expected window.>"
+  "officer_summary": "<max 2 sentences>"
 }
+
+=== OUTPUT SIZE LIMITS (MANDATORY) ===
+- investigative_gaps: MAX 3 items. Each has 3 fields: gap, priority, action.
+- action: MAX 15 words per item.
+- officer_summary: MAX 2 sentences.
+- recommended_actions: MAX 3 items.
 
 RULES:
 - onset_verification MUST be the FIRST and highest-priority item

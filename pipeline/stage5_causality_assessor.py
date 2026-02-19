@@ -10,11 +10,16 @@ v4 Architecture:
 The LLM CANNOT change the classification. It only generates the reasoning summary.
 This eliminates the v3.1 "Pattern B" problem where LLM contradicted its own decision
 chain, and removes the need for _apply_decision_guard().
+
+MedGemma Hybrid:
+  - Code builds complete JSON skeleton (vaers_id, confidence, key_factors)
+  - LLM writes only a 2-3 sentence reasoning_summary (plain text, no JSON)
+  - Fallback: code generates template reasoning if LLM fails
 """
 
 import json
 from llm_client import LLMClient
-from prompts.system_prompts import STAGE5_CAUSALITY_INTEGRATOR
+from prompts.system_prompts import STAGE5_CAUSALITY_INTEGRATOR, STAGE5_REASONING_MEDGEMMA
 
 
 # ============================================================
@@ -159,46 +164,140 @@ def run_stage5(
     )
 
     # --- Stage 5B: LLM reasoning for the assigned category ---
-    combined_input = {
-        "icsr": icsr_data,
-        "stage2_brighton": brighton_data,
-        "stage3_ddx": ddx_data,
-        "stage4_temporal_known_ae": temporal_data,
-        "condition_type": condition_type,
-        "assigned_who_category": who_category,
-        "assigned_who_label": _who_label(who_category),
-        "decision_chain": decision_chain,
-        # v4.1b: investigation context for reasoning
-        "investigation_context": {
-            "intensity": temporal_data.get("temporal_assessment", {}).get("investigation_intensity"),
-            "focus": temporal_data.get("temporal_assessment", {}).get("investigation_focus"),
-            "description": temporal_data.get("temporal_assessment", {}).get("investigation_description"),
-        },
-    }
-
-    llm_result = llm.query_json(
-        system_prompt=STAGE5_CAUSALITY_INTEGRATOR,
-        user_message=(
-            "Explain why this WHO AEFI causality category was assigned. "
-            "The classification has already been determined by the decision tree.\n\n"
-            f"{json.dumps(combined_input, indent=2)}"
-        ),
-    )
-
-    # Build final result — who_category is ALWAYS from code, never from LLM
     vaers_id = icsr_data.get("vaers_id")
 
+    # Key factors (code-determined)
+    key_factors = [f"Brighton L{brighton_level}", f"NCI {max_nci:.2f}", temporal_zone]
+    if known_ae:
+        key_factors.append("Known AE (ESTABLISHED)")
+    if temporal_met:
+        key_factors.append(f"Temporal met ({temporal_zone})")
+
+    # Confidence (code-determined)
+    if who_category in ("A1", "C"):
+        confidence = "HIGH"
+    elif who_category in ("B1", "B2"):
+        confidence = "MEDIUM"
+    else:
+        confidence = "LOW"
+
+    # MedGemma hybrid: code skeleton + plain text reasoning
+    if llm.backend == "medgemma":
+        reasoning = _generate_reasoning_medgemma(
+            llm, vaers_id, who_category, brighton_level, max_nci,
+            known_ae, temporal_met, temporal_zone, condition_type,
+        )
+    else:
+        # Anthropic: full JSON query
+        slim_input = {
+            "vaers_id": vaers_id,
+            "condition_type": condition_type,
+            "brighton_level": brighton_level,
+            "max_nci": max_nci,
+            "known_ae": known_ae,
+            "temporal_met": temporal_met,
+            "temporal_zone": temporal_zone,
+            "who_step1_conclusion": who_step1,
+            "epistemic_uncertainty": epistemic,
+            "assigned_who_category": who_category,
+            "assigned_who_label": _who_label(who_category),
+            "decision_chain": decision_chain,
+            "investigation_context": {
+                "intensity": temporal_data.get("temporal_assessment", {}).get("investigation_intensity"),
+                "focus": temporal_data.get("temporal_assessment", {}).get("investigation_focus"),
+                "description": temporal_data.get("temporal_assessment", {}).get("investigation_description"),
+            },
+        }
+        try:
+            llm_result = llm.query_json(
+                system_prompt=STAGE5_CAUSALITY_INTEGRATOR,
+                user_message=(
+                    "Explain why this WHO AEFI causality category was assigned. "
+                    "The classification has already been determined by the decision tree.\n\n"
+                    f"{json.dumps(slim_input, indent=2)}"
+                ),
+            )
+            reasoning = llm_result.get("reasoning_summary", "") or llm_result.get("reasoning", "")
+            confidence = llm_result.get("confidence", confidence)
+            key_factors = llm_result.get("key_factors", key_factors)
+        except Exception as e:
+            reasoning = (
+                f"Classification {who_category} determined by decision tree. "
+                f"LLM reasoning unavailable: {e}"
+            )
+
+    # Build final result — who_category is ALWAYS from code, never from LLM
     result = {
         "vaers_id": vaers_id,
         "who_category": who_category,
         "who_category_label": _who_label(who_category),
-        "confidence": llm_result.get("confidence", "HIGH"),
+        "confidence": confidence,
         "decision_chain": decision_chain,
-        "key_factors": llm_result.get("key_factors", []),
-        "reasoning": llm_result.get("reasoning_summary", "")
-                     or llm_result.get("reasoning", ""),
+        "key_factors": key_factors,
+        "reasoning": reasoning,
         "override_applied": False,
         "classification_source": "DETERMINISTIC (v4 decision tree)",
     }
 
     return result
+
+
+def _generate_reasoning_medgemma(
+    llm, vaers_id, who_category, brighton_level, max_nci,
+    known_ae, temporal_met, temporal_zone, condition_type,
+) -> str:
+    """
+    MedGemma hybrid: LLM writes plain text reasoning, code provides context.
+    Fallback: code generates template reasoning if LLM fails.
+    """
+    # Build a concise input for LLM
+    input_text = (
+        f"WHO={who_category}, Brighton L{brighton_level}, "
+        f"NCI={max_nci:.2f}, temporal={temporal_zone}, "
+        f"known_ae={known_ae}, {condition_type}"
+    )
+
+    try:
+        reasoning = llm.query_text(
+            system_prompt=STAGE5_REASONING_MEDGEMMA,
+            user_message=input_text,
+        )
+        # Validate: must be non-empty and not JSON
+        reasoning = reasoning.strip()
+        if reasoning and not reasoning.startswith("{"):
+            return reasoning[:500]  # Cap length
+    except Exception:
+        pass
+
+    # Fallback: code-generated reasoning
+    if who_category == "A1":
+        return (
+            f"Classification A1 (Consistent with causal association): "
+            f"{condition_type} is an established adverse event of mRNA COVID-19 vaccines. "
+            f"Brighton Level {brighton_level} confirms diagnostic certainty. "
+            f"Onset falls within {temporal_zone} window. "
+            f"NCI score {max_nci:.2f} indicates no significant alternative etiology."
+        )
+    elif who_category == "C":
+        return (
+            f"Classification C (Coincidental): "
+            f"NCI score {max_nci:.2f} indicates a definite alternative cause. "
+            f"Temporal zone: {temporal_zone}. Brighton Level {brighton_level}."
+        )
+    elif who_category == "B1":
+        return (
+            f"Classification B1 (Indeterminate — potential signal): "
+            f"Temporal relationship is {temporal_zone} but {condition_type} "
+            f"is not an established AE for this vaccine. NCI {max_nci:.2f}."
+        )
+    elif who_category == "B2":
+        return (
+            f"Classification B2 (Indeterminate — conflicting factors): "
+            f"Evidence both for and against vaccine causation. "
+            f"NCI {max_nci:.2f}, temporal zone {temporal_zone}."
+        )
+    else:
+        return (
+            f"Classification {who_category}: "
+            f"Brighton L{brighton_level}, NCI {max_nci:.2f}, temporal {temporal_zone}."
+        )

@@ -9,10 +9,17 @@ Input:  Original narrative + 3A output + 3B candidates + differentiation_guide
 Output: Per-marker 4-dimensional assessment (backward compatible with v3.1)
         All 38 clinical markers + 3 nuance markers included;
         unmatched markers are set to present=false.
+
+MedGemma Hybrid:
+  - Code builds complete marker skeleton from Stage 3B matches
+  - LLM writes brief rationale text for each matched marker
+  - Code fills present/acute/plausibility from keyword match data
+  - Fallback: code generates default rationale if LLM fails
 """
 
 import json
 from llm_client import LLMClient
+from prompts.system_prompts import STAGE3C_PLAUSIBILITY_MEDGEMMA
 
 
 # All clinical markers from NCI_WEIGHT_MATRIX (excluding narrative_nuance)
@@ -133,6 +140,14 @@ For EACH marker listed below, provide a 4-dimensional assessment:
 - For rapid_heart_failure: Assess GCM (refractory, progressive) vs vaccine (self-limited, recovery)
 - For lymphocytosis: TRUE only when lab results confirm actual lymphocyte elevation
 
+=== CRITICAL OUTPUT RULES ===
+- "biological_rationale": MAX 10 words. Use noun-phrases only.
+  GOOD: "Positive parvovirus IgM confirms viral etiology"
+  BAD: "The patient presented with biventricular systolic dysfunction and evidence of..."
+- If Stage 3A found supporting evidence, set present=true unless clinical mismatch.
+- LVEF < 40% → rapid_heart_failure: present=true, is_acute_concordant=true
+- Positive viral test → positive_viral_pcr: present=true
+
 === OUTPUT FORMAT ===
 Respond ONLY with valid JSON. Use the exact marker names as keys:
 {
@@ -140,7 +155,7 @@ Respond ONLY with valid JSON. Use the exact marker names as keys:
     "present": true/false,
     "is_acute_concordant": true/false,
     "plausibility": "high/moderate/low/none",
-    "biological_rationale": "..."
+    "biological_rationale": "max 10 words"
   },
   ...
 }
@@ -170,6 +185,9 @@ def run_stage3c(
     Returns:
         Dict of all 38+3 markers in v3.1 cleaned_findings format
     """
+    if llm.backend == "medgemma":
+        return _run_stage3c_medgemma(llm, original_narrative, stage3a_output, stage3b_output, ddx_db)
+
     # Build the focused evaluation section
     evaluation_section = _build_evaluation_prompt(stage3b_output, ddx_db)
 
@@ -233,6 +251,92 @@ def run_stage3c(
                 }
             else:
                 cleaned_findings[marker] = dict(_DEFAULT_ABSENT)
+        else:
+            cleaned_findings[marker] = dict(_DEFAULT_ABSENT)
+
+    return cleaned_findings
+
+
+def _run_stage3c_medgemma(
+    llm: LLMClient,
+    original_narrative: str,
+    stage3a_output: dict,
+    stage3b_output: dict,
+    ddx_db: dict,
+) -> dict:
+    """
+    MedGemma hybrid Stage 3C:
+    1. Code builds complete marker skeleton from Stage 3B matches
+    2. LLM writes brief rationale text for each matched marker
+    3. Code fills present/acute/plausibility deterministically
+    4. Fallback: code generates default rationale if LLM fails
+    """
+    # Collect all matched markers from Stage 3B
+    markers_to_evaluate = set()
+    marker_source = {}  # marker_name → (source_observation, source_context, weight)
+    for candidate in stage3b_output.get("ddx_candidates", []):
+        for m in candidate["matched_indicators"]:
+            name = m["finding"]
+            markers_to_evaluate.add(name)
+            marker_source[name] = (
+                m.get("source_observation", ""),
+                m.get("source_context", ""),
+                m.get("weight", 0.0),
+            )
+
+    # Add nuance markers if observations exist
+    nuance_obs = stage3b_output.get("narrative_nuance_observations", [])
+    if nuance_obs:
+        markers_to_evaluate.update(_NUANCE_MARKERS)
+        for marker in _NUANCE_MARKERS:
+            if marker not in marker_source:
+                marker_source[marker] = ("narrative_uncertainty", "", 0.2)
+
+    # --- LLM: write brief rationale for each marker (text-only) ---
+    llm_rationales = {}
+    if markers_to_evaluate:
+        marker_list = ", ".join(sorted(markers_to_evaluate)[:20])
+        try:
+            llm_text = llm.query_text(
+                system_prompt=STAGE3C_PLAUSIBILITY_MEDGEMMA,
+                user_message=f"Markers to evaluate: {marker_list}",
+            )
+            for line in llm_text.strip().split("\n"):
+                line = line.strip()
+                if ":" in line:
+                    parts = line.split(":", 1)
+                    marker_key = parts[0].strip().lower().replace(" ", "_")
+                    rationale = parts[1].strip()
+                    if rationale:
+                        llm_rationales[marker_key] = rationale[:80]  # Max 80 chars
+        except Exception:
+            pass  # LLM failed — use code fallback
+
+    # --- Code: Build complete 38+3 marker output ---
+    cleaned_findings = {}
+
+    for marker in _ALL_CLINICAL_MARKERS:
+        if marker in markers_to_evaluate:
+            source_obs, source_ctx, weight = marker_source.get(marker, ("", "", 0.0))
+            rationale = llm_rationales.get(marker, f"Keyword matched in narrative.")
+            cleaned_findings[marker] = {
+                "present": True,
+                "is_acute_concordant": True,
+                "plausibility": "moderate",
+                "biological_rationale": rationale,
+            }
+        else:
+            cleaned_findings[marker] = dict(_DEFAULT_ABSENT)
+
+    for marker in _NUANCE_MARKERS:
+        if marker in markers_to_evaluate:
+            rationale = llm_rationales.get(marker, "Narrative uncertainty noted.")
+            cleaned_findings[marker] = {
+                "present": True,
+                "is_acute_concordant": True,
+                "plausibility": "moderate",
+                "biological_rationale": rationale,
+            }
         else:
             cleaned_findings[marker] = dict(_DEFAULT_ABSENT)
 

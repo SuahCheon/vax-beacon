@@ -19,6 +19,9 @@ Thumbs.db
 .DS_Store
 NUL
 
+# Runtime logs
+logs/
+
 # Generated reports
 reports/*.md
 reports/*.docx
