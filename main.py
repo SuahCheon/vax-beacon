@@ -103,6 +103,48 @@ def _safe_print(*args, **kwargs):
         _log("[stdout broken — switching to log-only mode]", "warning")
 
 
+class _StageProgressIndicator:
+    """Background thread that prints stage sub-step messages while LLM runs.
+
+    Usage:
+        indicator = _StageProgressIndicator(messages, interval=5.0)
+        indicator.start()
+        result = llm.query(...)   # blocking LLM call
+        indicator.stop()
+    """
+
+    def __init__(self, messages: list[str], interval: float = 5.0):
+        self._messages = messages
+        self._interval = interval
+        self._stop_event = threading.Event()
+        self._thread: threading.Thread | None = None
+
+    def start(self):
+        self._stop_event.clear()
+        self._thread = threading.Thread(target=self._run, daemon=True)
+        self._thread.start()
+
+    def stop(self):
+        self._stop_event.set()
+        if self._thread:
+            self._thread.join(timeout=2.0)
+
+    def _run(self):
+        for msg in self._messages:
+            if self._stop_event.wait(timeout=self._interval):
+                return  # LLM finished — stop printing
+            _safe_print(f"    {msg}")
+
+
+_STAGE1_PROGRESS_MESSAGES = [
+    "Extracting demographics...",
+    "Extracting vaccine information...",
+    "Extracting clinical findings...",
+    "Extracting medical history...",
+    "Parsing structured output...",
+]
+
+
 def _setup_batch_logger(tag: str) -> logging.Logger:
     """Configure file + console logger for batch runs.
 
@@ -418,31 +460,32 @@ def run_single_case(llm: LLMClient, row: pd.Series, verbose: bool = True) -> dic
     # ==================================================================
 
     # --- Stage 1: ICSR Extraction (LLM) — Data Intake ---
+    indicator = None
     try:
         t0 = time.time()
         if verbose:
-            _safe_print(f"  [Stage 1] ICSR Extractor (LLM)...", end=" ", flush=True)
-        # Apply timeout for MedGemma (can hang on long narratives)
-        if llm.backend == "medgemma":
-            s1_result, s1_err = _run_with_timeout(
-                run_stage1, args=(llm, case_text), timeout_sec=STAGE1_TIMEOUT_SEC
-            )
-            if s1_err:
-                raise TimeoutError(f"Stage 1 timeout: {s1_err}")
-            result["stages"]["stage1_icsr"] = s1_result
-        else:
-            result["stages"]["stage1_icsr"] = run_stage1(llm, case_text)
+            _safe_print(f"  [Stage 1] ICSR Extractor (LLM)...")
+            indicator = _StageProgressIndicator(_STAGE1_PROGRESS_MESSAGES, interval=5.0)
+            indicator.start()
+        # MedGemma: time limit is enforced inside model.generate() via
+        # _TimeLimitCriteria (StoppingCriteria), so no external thread timeout needed.
+        # This prevents zombie CUDA threads that cause intermittent hangs.
+        result["stages"]["stage1_icsr"] = run_stage1(llm, case_text)
         result["processing_time"]["stage1"] = round(time.time() - t0, 2)
+        if indicator:
+            indicator.stop()
         if verbose:
-            _safe_print(f"OK ({result['processing_time']['stage1']}s)")
+            _safe_print(f"  [Stage 1] OK ({result['processing_time']['stage1']}s)")
         _log(f"VAERS {vaers_id} | Stage 1 | {result['processing_time']['stage1']}s | OK")
     except Exception as e:
+        if indicator:
+            indicator.stop()
         elapsed = round(time.time() - t0, 2)
         result["processing_time"]["stage1"] = elapsed
         result["errors"].append({"stage": 1, "error": str(e), "traceback": traceback.format_exc()})
         _log(f"VAERS {vaers_id} | Stage 1 | {elapsed}s | FAIL: {e}", "error")
         if verbose:
-            _safe_print(f"FAIL: {e}")
+            _safe_print(f"  [Stage 1] FAIL: {e}")
         return result
 
     # --- Stage 2: Clinical Validator (Rule) — WHO Step 0: Valid Diagnosis ---
@@ -484,10 +527,22 @@ def run_single_case(llm: LLMClient, row: pd.Series, verbose: bool = True) -> dic
             if verbose:
                 _safe_print(f"OK -> WHO: {s6_who} ({result['processing_time']['stage6']}s)")
         except Exception as e:
+            elapsed6 = round(time.time() - t0, 2)
+            result["processing_time"]["stage6"] = elapsed6
             result["errors"].append({"stage": 6, "error": str(e), "traceback": traceback.format_exc()})
-            _log(f"VAERS {vaers_id} | Stage 6 (exit) | FAIL: {e}", "error")
+            _log(f"VAERS {vaers_id} | Stage 6 (exit) | FAIL (fallback): {e}", "error")
+            result["stages"]["stage6_guidance"] = {
+                "who_category": "Unclassifiable",
+                "investigation_gaps": ["Guidance generation failed — LLM error."],
+                "recommended_actions": [
+                    "Obtain cardiac MRI or troponin results to upgrade Brighton level.",
+                    "Re-run pipeline when system resources are available.",
+                ],
+                "officer_summary": "Brighton L4 — insufficient diagnostic evidence. "
+                                   "Manual review recommended.",
+            }
             if verbose:
-                _safe_print(f"FAIL: {e}")
+                _safe_print(f"FALLBACK ({elapsed6}s)")
 
         total = sum(result["processing_time"].values())
         result["processing_time"]["total"] = round(total, 2)
@@ -500,6 +555,13 @@ def run_single_case(llm: LLMClient, row: pd.Series, verbose: bool = True) -> dic
     # ==================================================================
 
     # --- Stage 3: DDx Two-Pass (v4) — WHO Step 1: Other Causes? ---
+    # Each sub-stage has individual fallback to prevent cascade failures
+    _EMPTY_3A = {"clinical_observations": {}, "demographics": {}, "key_negatives": []}
+    _EMPTY_3B = {"match_summary": {"total_candidates": 0, "total_matched_indicators": 0}, "matched_ddx": {}}
+
+    t3a = t3b = t3c = t3d = 0.0
+
+    # Stage 3A: Clinical Observer (LLM) — fallback: empty observations
     try:
         t0 = time.time()
         if verbose:
@@ -509,7 +571,16 @@ def run_single_case(llm: LLMClient, row: pd.Series, verbose: bool = True) -> dic
         if verbose:
             obs_count = sum(len(v) for v in stage3a.get("clinical_observations", {}).values())
             _safe_print(f"OK -> {obs_count} observations ({t3a}s)")
+    except Exception as e:
+        stage3a = _EMPTY_3A
+        t3a = round(time.time() - t0, 2)
+        result["errors"].append({"stage": "3A", "error": str(e), "traceback": traceback.format_exc()})
+        _log(f"VAERS {vaers_id} | Stage 3A | FAIL (fallback: empty obs): {e}", "error")
+        if verbose:
+            _safe_print(f"FALLBACK ({t3a}s) — empty observations")
 
+    # Stage 3B: DDx Matcher (Code) — fallback: empty matches
+    try:
         if verbose:
             _safe_print(f"  [Stage 3B] DDx Matcher (Code)...", end=" ", flush=True)
         t0b = time.time()
@@ -519,7 +590,16 @@ def run_single_case(llm: LLMClient, row: pd.Series, verbose: bool = True) -> dic
             n_cand = stage3b["match_summary"]["total_candidates"]
             n_match = stage3b["match_summary"]["total_matched_indicators"]
             _safe_print(f"OK -> {n_cand} candidates, {n_match} matched ({t3b}s)")
+    except Exception as e:
+        stage3b = _EMPTY_3B
+        t3b = round(time.time() - t0b, 2)
+        result["errors"].append({"stage": "3B", "error": str(e), "traceback": traceback.format_exc()})
+        _log(f"VAERS {vaers_id} | Stage 3B | FAIL (fallback: empty matches): {e}", "error")
+        if verbose:
+            _safe_print(f"FALLBACK ({t3b}s)")
 
+    # Stage 3C: Plausibility Assessor (LLM) — fallback: empty assessments
+    try:
         if verbose:
             _safe_print(f"  [Stage 3C] Plausibility Assessor (LLM)...", end=" ", flush=True)
         t0c = time.time()
@@ -528,7 +608,16 @@ def run_single_case(llm: LLMClient, row: pd.Series, verbose: bool = True) -> dic
         if verbose:
             present_count = sum(1 for v in stage3c.values() if v.get("present"))
             _safe_print(f"OK -> {present_count} markers present ({t3c}s)")
+    except Exception as e:
+        stage3c = {}
+        t3c = round(time.time() - t0c, 2)
+        result["errors"].append({"stage": "3C", "error": str(e), "traceback": traceback.format_exc()})
+        _log(f"VAERS {vaers_id} | Stage 3C | FAIL (fallback: empty plausibility): {e}", "error")
+        if verbose:
+            _safe_print(f"FALLBACK ({t3c}s)")
 
+    # Stage 3D: NCI Calculator (Code) — always succeeds on valid 3C input
+    try:
         if verbose:
             _safe_print(f"  [Stage 3D] NCI Calculator (Code)...", end=" ", flush=True)
         t0d = time.time()
@@ -546,8 +635,8 @@ def run_single_case(llm: LLMClient, row: pd.Series, verbose: bool = True) -> dic
         if verbose:
             _safe_print(f"OK -> NCI={max_nci}, Step1={step1} ({t3d}s)")
     except Exception as e:
-        result["errors"].append({"stage": 3, "error": str(e), "traceback": traceback.format_exc()})
-        _log(f"VAERS {vaers_id} | Stage 3 | FAIL: {e}", "error")
+        result["errors"].append({"stage": "3D", "error": str(e), "traceback": traceback.format_exc()})
+        _log(f"VAERS {vaers_id} | Stage 3D | FAIL: {e}", "error")
         if verbose:
             _safe_print(f"FAIL: {e}")
 
@@ -579,6 +668,7 @@ def run_single_case(llm: LLMClient, row: pd.Series, verbose: bool = True) -> dic
     # ==================================================================
 
     # --- Stage 5: Causality Assessor (Code+LLM) — WHO Step 3 & 4 ---
+    # Fallback: deterministic classify() always succeeds; LLM reasoning is optional
     try:
         t0 = time.time()
         if verbose:
@@ -597,12 +687,36 @@ def run_single_case(llm: LLMClient, row: pd.Series, verbose: bool = True) -> dic
         if verbose:
             _safe_print(f"OK -> WHO: {who_cat} ({result['processing_time']['stage5']}s)")
     except Exception as e:
+        elapsed5 = round(time.time() - t0, 2)
+        result["processing_time"]["stage5"] = elapsed5
         result["errors"].append({"stage": 5, "error": str(e), "traceback": traceback.format_exc()})
-        _log(f"VAERS {vaers_id} | Stage 5 | FAIL: {e}", "error")
+        _log(f"VAERS {vaers_id} | Stage 5 | FAIL (fallback: deterministic only): {e}", "error")
+        # Fallback: run classify() without LLM reasoning
+        from pipeline.stage5_causality_assessor import classify
+        _b = result["stages"].get("stage2_brighton", {})
+        _d = result["stages"].get("stage3_ddx", {})
+        _t = result["stages"].get("stage4_temporal", {})
+        _who, _chain = classify(
+            brighton_level=_b.get("brighton_level", 4),
+            max_nci=_d.get("max_nci_score", 0) or 0,
+            known_ae=_t.get("known_ae_assessment", {}).get("is_known_ae", False),
+            temporal_met=_t.get("who_step2_met", False),
+            temporal_zone=_t.get("temporal_assessment", {}).get("temporal_zone", "UNKNOWN"),
+            who_step1_conclusion=_d.get("who_step1_conclusion", "NO_ALTERNATIVE"),
+            epistemic_uncertainty=_d.get("epistemic_uncertainty", 0) or 0,
+        )
+        result["stages"]["stage5_causality"] = {
+            "who_category": _who,
+            "decision_chain": _chain,
+            "confidence": "LOW",
+            "reasoning": f"LLM reasoning unavailable ({e}). Classification by deterministic decision tree only.",
+            "classification_source": "DETERMINISTIC_FALLBACK",
+        }
         if verbose:
-            _safe_print(f"FAIL: {e}")
+            _safe_print(f"FALLBACK -> WHO: {_who} ({elapsed5}s)")
 
     # --- Stage 6: Guidance Advisor (LLM) — Reporting ---
+    # Fallback: minimal guidance template if LLM fails
     try:
         t0 = time.time()
         if verbose:
@@ -621,10 +735,23 @@ def run_single_case(llm: LLMClient, row: pd.Series, verbose: bool = True) -> dic
         if verbose:
             _safe_print(f"OK ({result['processing_time']['stage6']}s)")
     except Exception as e:
+        elapsed6 = round(time.time() - t0, 2)
+        result["processing_time"]["stage6"] = elapsed6
         result["errors"].append({"stage": 6, "error": str(e), "traceback": traceback.format_exc()})
-        _log(f"VAERS {vaers_id} | Stage 6 | FAIL: {e}", "error")
+        _log(f"VAERS {vaers_id} | Stage 6 | FAIL (fallback: minimal guidance): {e}", "error")
+        _who = result["stages"].get("stage5_causality", {}).get("who_category", "Unclassifiable")
+        result["stages"]["stage6_guidance"] = {
+            "who_category": _who,
+            "investigation_gaps": ["Full guidance unavailable — LLM error during generation."],
+            "recommended_actions": [
+                "Review raw clinical data and Brighton classification manually.",
+                "Re-run pipeline when system resources are available.",
+            ],
+            "officer_summary": f"WHO category {_who} assigned by deterministic pipeline. "
+                               "Automated guidance generation failed; manual review recommended.",
+        }
         if verbose:
-            _safe_print(f"FAIL: {e}")
+            _safe_print(f"FALLBACK ({elapsed6}s)")
 
     # --- Summary ---
     total = sum(result["processing_time"].values())
@@ -1127,9 +1254,9 @@ def main():
     parser.add_argument("--docx", action="store_true", help="Also generate Word report")
     parser.add_argument("-i", "--interactive", action="store_true",
                         help="Launch interactive case selection mode")
-    parser.add_argument("--backend", type=str, default="anthropic",
+    parser.add_argument("--backend", type=str, default="medgemma",
                         choices=["anthropic", "medgemma"],
-                        help="LLM backend (default: anthropic)")
+                        help="LLM backend (default: medgemma)")
     parser.add_argument("--resume", action="store_true",
                         help="Resume batch: skip cases already in latest results JSON")
     args = parser.parse_args()

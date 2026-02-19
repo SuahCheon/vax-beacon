@@ -7,6 +7,7 @@ Swappable backend: Anthropic Claude (local) → MedGemma 4B (local RTX 4050)
 import gc
 import json
 import re
+import time
 import numpy as np
 from config import ANTHROPIC_API_KEY, ANTHROPIC_MODEL, MAX_TOKENS, TEMPERATURE
 
@@ -45,6 +46,21 @@ class _StopOnJsonClose:
                 if depth == 0:
                     return True
         return False
+
+
+class _TimeLimitCriteria:
+    """Transformers StoppingCriteria: halt generation if wall-clock time exceeds limit.
+
+    This stops model.generate() from the INSIDE, preventing zombie CUDA threads
+    that occur when using external thread.join(timeout) to kill long-running generation.
+    """
+
+    def __init__(self, max_seconds: float = 120.0):
+        self._max_seconds = max_seconds
+        self._start_time = time.monotonic()
+
+    def __call__(self, input_ids, scores, **kwargs):
+        return (time.monotonic() - self._start_time) >= self._max_seconds
 
 
 class LLMClient:
@@ -195,6 +211,9 @@ class LLMClient:
     # ------------------------------------------------------------------
     #  Core MedGemma generation
     # ------------------------------------------------------------------
+    # Per-call time limit (seconds) for model.generate()
+    GENERATE_TIME_LIMIT = 120.0
+
     def _generate_medgemma(self, system_prompt: str, user_message: str,
                            max_new_tokens: int, temperature: float,
                            prefill_brace: bool = False) -> str:
@@ -234,15 +253,16 @@ class LLMClient:
         if self._thinking_token_id is not None:
             gen_kwargs["bad_words_ids"] = [[self._thinking_token_id]]
 
-        # StopOnJsonClose criteria (only when prefilling brace)
+        # Stopping criteria: always include time limit + optional JSON close
+        criteria = [_TimeLimitCriteria(max_seconds=self.GENERATE_TIME_LIMIT)]
         if prefill_brace:
-            stop_criteria = StoppingCriteriaList([
-                _StopOnJsonClose(self.tokenizer, prompt_len)
-            ])
-            gen_kwargs["stopping_criteria"] = stop_criteria
+            criteria.append(_StopOnJsonClose(self.tokenizer, prompt_len))
+        gen_kwargs["stopping_criteria"] = StoppingCriteriaList(criteria)
 
+        t0 = time.monotonic()
         with torch.no_grad():
             output = self.model.generate(**inputs, **gen_kwargs)
+        elapsed = time.monotonic() - t0
 
         result = self.tokenizer.decode(
             output[0][prompt_len:], skip_special_tokens=True
@@ -255,6 +275,13 @@ class LLMClient:
         # Cleanup VRAM
         del inputs, output
         torch.cuda.empty_cache()
+
+        # If time limit was hit, raise so caller can handle gracefully
+        if elapsed >= self.GENERATE_TIME_LIMIT - 1.0:
+            raise TimeoutError(
+                f"MedGemma generation exceeded {self.GENERATE_TIME_LIMIT}s "
+                f"(actual: {elapsed:.1f}s). Partial output discarded."
+            )
 
         return result.strip()
 
@@ -335,59 +362,89 @@ class LLMClient:
     #  Public API: query_json()
     # ------------------------------------------------------------------
     def query_json(self, system_prompt: str, user_message: str, temperature: float = None) -> dict:
-        """Send a query and parse the response as JSON. MedGemma: retry once on failure."""
-        max_attempts = 2 if self.backend == "medgemma" else 1
+        """Send a query and parse the response as JSON.
+
+        Robustness strategy (3-layer):
+          1. Parse raw → extract JSON object → repair → parse
+          2. On failure: retry with "Respond ONLY with valid JSON" hint (up to 3 attempts)
+          3. On all failures: return empty dict instead of raising (pipeline continues)
+        """
+        max_attempts = 3 if self.backend == "medgemma" else 1
         last_error = None
+        last_raw = ""
 
         for attempt in range(max_attempts):
-            raw = self.query(system_prompt, user_message, temperature)
-
-            # Extract JSON from response (handle markdown code blocks)
-            text = raw.strip()
-            if text.startswith("```json"):
-                text = text[7:]
-            if text.startswith("```"):
-                text = text[3:]
-            if text.endswith("```"):
-                text = text[:-3]
-            text = text.strip()
-
-            # MedGemma: always apply repair first (backslash escapes are pervasive)
-            if self.backend == "medgemma":
-                text = self._repair_json(text)
-
-            # Try direct parse (strict=False tolerates control chars in strings)
             try:
-                parsed = json.loads(text, strict=False)
-                parsed = self._unwrap_list(parsed)
-                if isinstance(parsed, dict):
-                    return parsed
-            except json.JSONDecodeError:
-                pass
+                # On retry, append JSON-enforcement hint
+                if attempt > 0:
+                    msg = (
+                        user_message
+                        + "\n\nIMPORTANT: Respond ONLY with valid JSON. "
+                        "No comments, no explanation, no markdown."
+                    )
+                else:
+                    msg = user_message
 
-            # Try extracting JSON object
-            extracted = self._extract_json_object(text)
-            try:
-                parsed = json.loads(extracted, strict=False)
-                parsed = self._unwrap_list(parsed)
-                if isinstance(parsed, dict):
-                    return parsed
-            except json.JSONDecodeError:
-                pass
+                raw = self.query(system_prompt, msg, temperature)
+                last_raw = raw
 
-            # Try repair again on extracted portion
-            repaired = self._repair_json(extracted)
-            try:
-                parsed = json.loads(repaired, strict=False)
-                parsed = self._unwrap_list(parsed)
-                if isinstance(parsed, dict):
-                    return parsed
-            except json.JSONDecodeError as e:
+                # Extract JSON from response (handle markdown code blocks)
+                text = raw.strip()
+                if text.startswith("```json"):
+                    text = text[7:]
+                if text.startswith("```"):
+                    text = text[3:]
+                if text.endswith("```"):
+                    text = text[:-3]
+                text = text.strip()
+
+                # MedGemma: always apply repair first (backslash escapes are pervasive)
+                if self.backend == "medgemma":
+                    text = self._repair_json(text)
+
+                # Try direct parse (strict=False tolerates control chars in strings)
+                try:
+                    parsed = json.loads(text, strict=False)
+                    parsed = self._unwrap_list(parsed)
+                    if isinstance(parsed, dict):
+                        return parsed
+                except json.JSONDecodeError:
+                    pass
+
+                # Try extracting JSON object
+                extracted = self._extract_json_object(text)
+                try:
+                    parsed = json.loads(extracted, strict=False)
+                    parsed = self._unwrap_list(parsed)
+                    if isinstance(parsed, dict):
+                        return parsed
+                except json.JSONDecodeError:
+                    pass
+
+                # Try repair again on extracted portion
+                repaired = self._repair_json(extracted)
+                try:
+                    parsed = json.loads(repaired, strict=False)
+                    parsed = self._unwrap_list(parsed)
+                    if isinstance(parsed, dict):
+                        return parsed
+                except json.JSONDecodeError as e:
+                    last_error = e
+
+            except (TimeoutError, Exception) as e:
+                # LLM call itself failed (timeout, CUDA error, etc.)
                 last_error = e
-                if attempt < max_attempts - 1:
-                    gc.collect()
-                    continue
 
-        raise ValueError(
-            f"Failed to parse JSON from LLM response: {last_error}\nRaw: {raw[:500]}"
+            # Retry cleanup
+            if attempt < max_attempts - 1:
+                gc.collect()
+                continue
+
+        # All attempts exhausted — return empty dict (pipeline continues)
+        # Caller stages handle empty dict gracefully via .get() defaults
+        import logging
+        logging.getLogger("vax_beacon_batch").warning(
+            f"query_json failed after {max_attempts} attempts: {last_error}. "
+            f"Raw[:200]: {last_raw[:200]}"
         )
+        return {}
