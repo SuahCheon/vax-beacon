@@ -3,9 +3,13 @@
 import json
 import os
 
+from config import KNOWLEDGE_DB_PATH
 
-def load_knowledge_db(base_path="knowledge"):
+
+def load_knowledge_db(base_path=None):
     """Load DDx and investigation protocol databases."""
+    if base_path is None:
+        base_path = KNOWLEDGE_DB_PATH
     ddx_path = os.path.join(base_path, "ddx_myocarditis.json")
     protocols_path = os.path.join(base_path, "investigation_protocols.json")
 

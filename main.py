@@ -50,7 +50,7 @@ if sys.platform == "win32":
 
 import pandas as pd
 
-from config import RESULTS_PATH
+from config import PROJECT_ROOT, RESULTS_PATH
 from llm_client import LLMClient
 from data_loader import load_vaers_data, get_case_input, get_ground_truth, get_sample_cases
 
@@ -152,9 +152,10 @@ def _setup_batch_logger(tag: str) -> logging.Logger:
     Console handler is wrapped to survive broken pipes.
     """
     global _batch_logger
-    os.makedirs("logs", exist_ok=True)
+    _logs_dir = os.path.join(PROJECT_ROOT, "logs")
+    os.makedirs(_logs_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_path = os.path.join("logs", f"batch_{tag}_{timestamp}.log")
+    log_path = os.path.join(_logs_dir, f"batch_{tag}_{timestamp}.log")
 
     logger = logging.getLogger("vax_beacon_batch")
     logger.setLevel(logging.DEBUG)
@@ -1444,7 +1445,7 @@ def main():
 
     # Single-case docx (if requested)
     if args.case and args.docx and results:
-        md_path = os.path.join("reports", f"VAERS_{args.case}_v4.md")
+        md_path = os.path.join(PROJECT_ROOT, "reports", f"VAERS_{args.case}_v4.md")
         if os.path.exists(md_path):
             docx_path = render_docx(md_path)
             if docx_path:

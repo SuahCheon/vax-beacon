@@ -9,7 +9,9 @@ Optional .docx conversion with python-docx.
 import os
 from datetime import datetime
 
-REPORTS_PATH = "reports"
+from config import PROJECT_ROOT
+
+REPORTS_PATH = os.path.join(PROJECT_ROOT, "reports")
 
 
 def render_report(result: dict, output_dir: str = REPORTS_PATH) -> str:

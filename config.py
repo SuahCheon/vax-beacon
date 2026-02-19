@@ -7,7 +7,11 @@ MedGemma PoC for Global Vaccine Safety Surveillance
 """
 
 import os
+from pathlib import Path
 from dotenv import load_dotenv
+
+# Project root: directory containing this config.py file
+PROJECT_ROOT = str(Path(__file__).resolve().parent)
 
 # Load .env file (override=True to ensure .env values take precedence)
 load_dotenv(override=True)
@@ -62,10 +66,10 @@ SEVERITY_TIERS = {
     "RECORDED": [],  # Default for G3 cases not matching above
 }
 
-# --- Data Configuration ---
-DATA_PATH = "data/vaers_100_cohort.csv"
-RESULTS_PATH = "results/"
-KNOWLEDGE_DB_PATH = "knowledge/"
+# --- Data Configuration (relative to PROJECT_ROOT) ---
+DATA_PATH = os.path.join(PROJECT_ROOT, "data", "vaers_100_cohort.csv")
+RESULTS_PATH = os.path.join(PROJECT_ROOT, "results")
+KNOWLEDGE_DB_PATH = os.path.join(PROJECT_ROOT, "knowledge")
 
 # Key VAERS columns for pipeline input
 VAERS_INPUT_COLUMNS = [
