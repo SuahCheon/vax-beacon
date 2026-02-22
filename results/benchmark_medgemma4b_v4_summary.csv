@@ -1,0 +1,101 @@
+vaers_id,condition_type,group,early_exit,brighton_level,who_step1_conclusion,max_nci,dominant_alternative,temporal_zone,days_to_onset,known_ae,who_step2_met,high_risk,who_category,confidence,risk_signal,mechanistic_score,lge_pattern,isolated_fever,errors,total_time_s,gt_group,gt_severity,gt_onset_days
+925542,pericarditis,clean,False,1,POSSIBLE_OTHER_CAUSE,0.5,Ischemic heart disease (CAD/MI),STRONG_CAUSAL,4.0,False,False,False,C,HIGH,LOW,0.2,unknown,False,0,104.65,clean,clean,4
+966794,pericarditis,clean,False,1,POSSIBLE_OTHER_CAUSE,0.5,Ischemic heart disease (CAD/MI),PLAUSIBLE,11.0,False,False,False,C,HIGH,LOW,0.0,unknown,False,0,142.74,clean,clean,11
+977955,pericarditis,clean,False,1,DEFINITE_OTHER_CAUSE,0.8,COVID-19 related myocarditis,PLAUSIBLE,13.0,False,False,False,C,HIGH,LOW,0.0,unknown,False,0,298.11,clean,clean,13
+983362,myocarditis,G2,False,2,POSSIBLE_OTHER_CAUSE,0.5,Ischemic heart disease (CAD/MI),STRONG_CAUSAL,5.0,True,True,False,B2,MEDIUM,MEDIUM,0.2,unknown,True,0,327.64,G2,Viral etiology,5
+1023768,pericarditis,confounded,False,1,DEFINITE_OTHER_CAUSE,1.0,Ischemic heart disease (CAD/MI),STRONG_CAUSAL,5.0,False,False,False,C,HIGH,LOW,0.0,unknown,False,0,291.03,confounded,Cancer,5
+1088210,myocarditis,G3,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,13.18,G3,ECMO; Impella; Fulminant,18
+1090794,myocarditis,G3,False,2,DEFINITE_OTHER_CAUSE,0.8,COVID-19 related myocarditis,PLAUSIBLE,12.0,True,True,False,C,HIGH,LOW,0.2,unknown,True,0,161.16,G3,Severe (unspecified),12
+1105807,myocarditis,G3,False,1,POSSIBLE_OTHER_CAUSE,0.6,Giant cell myocarditis,STRONG_CAUSAL,1.0,True,True,False,B2,MEDIUM,MEDIUM,0.2,unknown,False,0,109.03,G3,EF 45%,1
+1128543,pericarditis,clean,False,1,POSSIBLE_OTHER_CAUSE,0.6,Viral myocarditis (infectious),BACKGROUND_RATE,29.0,False,False,False,C,HIGH,LOW,0.0,unknown,False,0,216.91,clean,clean,29
+1147729,pericarditis,clean,False,1,POSSIBLE_OTHER_CAUSE,0.6,Giant cell myocarditis,STRONG_CAUSAL,2.0,False,False,False,C,HIGH,LOW,0.1,diffuse,False,0,164.53,clean,clean,2
+1219721,myocarditis,G2,False,2,POSSIBLE_OTHER_CAUSE,0.5,Ischemic heart disease (CAD/MI),STRONG_CAUSAL,3.0,True,True,False,B2,MEDIUM,MEDIUM,0.2,unknown,False,0,83.06,G2,Viral etiology,3
+1259694,myocarditis,G2,False,3,POSSIBLE_OTHER_CAUSE,0.5,Ischemic heart disease (CAD/MI),PLAUSIBLE,13.0,True,True,False,B2,MEDIUM,MEDIUM,0.2,unknown,True,0,104.68,G2,Rheumatoid,13
+1262194,myocarditis,G1,False,3,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,2.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,15.17,G1,Classic presentation,2
+1262397,myocarditis,G3,False,2,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,3.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,365.73,G3,Heart block,3
+1263276,myocarditis,G3,False,1,DEFINITE_OTHER_CAUSE,1.0,Giant cell myocarditis,UNLIKELY,50.0,True,False,True,C,HIGH,LOW,0.0,unknown,False,0,298.46,G3,VT,50
+1280493,myocarditis,G3,False,1,DEFINITE_OTHER_CAUSE,1.0,COVID-19 related myocarditis,STRONG_CAUSAL,0.0,True,True,True,C,HIGH,LOW,0.0,unknown,False,0,139.65,G3,EF 50%,0
+1286607,myocarditis,G3,False,1,POSSIBLE_OTHER_CAUSE,0.55,Viral myocarditis (infectious),STRONG_CAUSAL,0.0,True,True,False,B2,MEDIUM,MEDIUM,0.0,unknown,False,0,96.17,G3,EF 55%,0
+1296631,myocarditis,G2,False,1,POSSIBLE_OTHER_CAUSE,0.5,Ischemic heart disease (CAD/MI),STRONG_CAUSAL,5.0,True,True,False,B2,MEDIUM,MEDIUM,0.0,unknown,False,0,55.0,G2,Cancer,5
+1299305,myocarditis,G3,False,1,POSSIBLE_OTHER_CAUSE,0.6,Giant cell myocarditis,UNKNOWN,,True,False,False,Unclassifiable,LOW,MEDIUM,0.0,unknown,False,0,118.24,G3,EF 52%,?
+1310544,myocarditis,G1,False,3,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,3.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,18.18,G1,Classic presentation,3
+1313197,myocarditis,G2,False,3,POSSIBLE_OTHER_CAUSE,0.5,Autoimmune/inflammatory myocarditis,STRONG_CAUSAL,4.0,True,True,False,B2,MEDIUM,MEDIUM,0.2,unknown,False,0,98.19,G2,Rheumatoid,4
+1314908,pericarditis,confounded,False,1,POSSIBLE_OTHER_CAUSE,0.5,Autoimmune/inflammatory myocarditis,STRONG_CAUSAL,0.0,False,False,False,C,HIGH,LOW,0.2,unknown,True,0,131.35,confounded,SLE/Lupus,0
+1321207,myocarditis,G1,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,19.04,G1,Classic presentation,5
+1326494,myocarditis,G2,False,1,POSSIBLE_OTHER_CAUSE,0.5,Ischemic heart disease (CAD/MI),STRONG_CAUSAL,1.0,True,True,True,B2,MEDIUM,MEDIUM,0.2,unknown,False,0,168.61,G2,Viral etiology,1
+1327087,myocarditis,G1,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,141.37,G1,Classic presentation,2
+1327571,myocarditis,G2,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,50.65,G2,Viral etiology,0
+1333399,myocarditis,G1,False,2,POSSIBLE_OTHER_CAUSE,0.5,Ischemic heart disease (CAD/MI),STRONG_CAUSAL,3.0,True,True,True,B2,MEDIUM,MEDIUM,0.2,unknown,False,0,81.05,G1,Classic presentation,3
+1333796,pericarditis,clean,False,1,POSSIBLE_OTHER_CAUSE,0.5,Ischemic heart disease (CAD/MI),STRONG_CAUSAL,5.0,False,False,False,C,HIGH,LOW,0.0,unknown,False,0,128.68,clean,clean,5
+1341730,myocarditis,G2,False,3,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,1.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,27.49,G2,Viral etiology,1
+1343980,myocarditis,G3,False,2,POSSIBLE_OTHER_CAUSE,0.6,Giant cell myocarditis,BACKGROUND_RATE,26.0,False,False,False,C,HIGH,LOW,0.0,unknown,False,0,250.4,G3,EF 30%,26
+1347238,myocarditis,G1,False,1,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,3.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,135.96,G1,Classic presentation,3
+1347846,myocarditis,G3,False,1,DEFINITE_OTHER_CAUSE,0.8,Viral myocarditis (infectious),STRONG_CAUSAL,3.0,True,True,False,C,HIGH,LOW,0.2,unknown,False,0,147.84,G3,EF 34%,3
+1349546,myocarditis,G2,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,30.9,G2,Viral etiology,-4
+1350637,myocarditis,G3,False,1,POSSIBLE_OTHER_CAUSE,0.4,Viral myocarditis (infectious),STRONG_CAUSAL,1.0,True,True,True,B2,MEDIUM,MEDIUM,0.2,unknown,False,0,137.42,G3,Heart block,1
+1350946,myocarditis,G3,False,3,NO_ALTERNATIVE,0.15,Viral myocarditis (infectious),STRONG_CAUSAL,1.0,True,True,True,A1,HIGH,HIGH,0.1,diffuse,False,0,315.78,G3,EF 51%,1
+1354460,myocarditis,G2,False,2,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,3.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,176.46,G2,Lithium,3
+1354522,myocarditis,G3,False,1,WEAK_ALTERNATIVE,0.35,Viral myocarditis (infectious),STRONG_CAUSAL,3.0,True,True,False,A1,HIGH,HIGH,0.2,unknown,False,0,126.82,G3,EF 60%,3
+1357322,myocarditis,G3,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,226.34,G3,ECMO; Cardiogenic shock,41
+1361389,pericarditis,clean,False,1,WEAK_ALTERNATIVE,0.2,Viral myocarditis (infectious),STRONG_CAUSAL,1.0,False,False,False,C,HIGH,LOW,0.2,unknown,False,0,255.79,clean,clean,1
+1382523,myocarditis,G1,False,1,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,3.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,22.02,G1,Classic presentation,3
+1382634,myocarditis,G2,False,2,POSSIBLE_OTHER_CAUSE,0.6,Giant cell myocarditis,STRONG_CAUSAL,1.0,True,True,False,B2,MEDIUM,MEDIUM,0.2,unknown,False,0,275.15,G2,Viral etiology,1
+1382955,myocarditis,G1,False,3,DEFINITE_OTHER_CAUSE,0.8,COVID-19 related myocarditis,STRONG_CAUSAL,2.0,True,True,True,C,HIGH,LOW,0.2,unknown,False,0,64.1,G1,Classic presentation,2
+1386123,myocarditis,G1,False,3,WEAK_ALTERNATIVE,0.2,Viral myocarditis (infectious),STRONG_CAUSAL,2.0,True,True,True,A1,HIGH,HIGH,0.4,unknown,True,0,118.69,G1,Classic presentation,2
+1394458,myocarditis,G2,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,80.59,G2,COVID-19 positive,17
+1395737,myocarditis,G2,False,2,DEFINITE_OTHER_CAUSE,0.8,COVID-19 related myocarditis,PLAUSIBLE,20.0,True,True,True,C,HIGH,LOW,0.0,unknown,False,0,134.54,G2,Viral etiology,20
+1396077,myocarditis,G1,False,3,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,1.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,71.7,G1,Classic presentation,1
+1397727,myocarditis,G1,False,1,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,1.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,161.53,G1,Classic presentation,1
+1400188,myocarditis,G1,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,8.7,G1,Classic presentation,2
+1400232,myocarditis,G1,False,1,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,2.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,46.42,G1,Classic presentation,2
+1400865,myocarditis,G1,False,3,WEAK_ALTERNATIVE,0.35,Viral myocarditis (infectious),STRONG_CAUSAL,1.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,99.4,G1,Classic presentation,1
+1403701,myocarditis,G1,False,3,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,3.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,22.73,G1,Classic presentation,3
+1412506,myocarditis,G2,False,1,DEFINITE_OTHER_CAUSE,1.0,Viral myocarditis (infectious),STRONG_CAUSAL,3.0,True,True,False,C,HIGH,LOW,0.1,diffuse,False,0,207.84,G2,Viral etiology,?
+1412996,myocarditis,G1,False,3,POSSIBLE_OTHER_CAUSE,0.5,Autoimmune/inflammatory myocarditis,STRONG_CAUSAL,1.0,True,True,True,B2,MEDIUM,MEDIUM,0.4,unknown,True,0,216.51,G1,Classic presentation,1
+1413266,myocarditis,G1,False,3,POSSIBLE_OTHER_CAUSE,0.4,Viral myocarditis (infectious),STRONG_CAUSAL,2.0,True,True,True,B2,MEDIUM,MEDIUM,0.2,unknown,False,0,30.63,G1,Classic presentation,2
+1413465,myocarditis,G1,False,2,POSSIBLE_OTHER_CAUSE,0.5,Giant cell myocarditis,STRONG_CAUSAL,2.0,True,True,True,B2,MEDIUM,MEDIUM,0.4,unknown,True,0,179.31,G1,Classic presentation,2
+1415281,myocarditis,G1,False,3,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,3.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,31.51,G1,Classic presentation,3
+1419924,myocarditis,G1,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,61.6,G1,Classic presentation,2
+1423060,myocarditis,G3,False,3,POSSIBLE_OTHER_CAUSE,0.5,Giant cell myocarditis,UNKNOWN,,True,False,True,Unclassifiable,LOW,MEDIUM,0.0,unknown,False,0,70.89,G3,VT,?
+1430395,myocarditis,G2,False,2,POSSIBLE_OTHER_CAUSE,0.5,Ischemic heart disease (CAD/MI),STRONG_CAUSAL,3.0,True,True,True,B2,MEDIUM,MEDIUM,0.2,unknown,False,0,80.99,G2,Viral etiology,3
+1431066,myocarditis,G1,False,3,POSSIBLE_OTHER_CAUSE,0.5,Ischemic heart disease (CAD/MI),STRONG_CAUSAL,3.0,True,True,True,B2,MEDIUM,MEDIUM,0.2,unknown,False,0,79.03,G1,Classic presentation,3
+1434274,myocarditis,G1,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,11.23,G1,Classic presentation,1
+1437261,pericarditis,confounded,False,1,POSSIBLE_OTHER_CAUSE,0.5,Ischemic heart disease (CAD/MI),PLAUSIBLE,9.0,False,False,False,C,HIGH,LOW,0.2,unknown,True,0,160.83,confounded,"SLE/Lupus, Sjogren's syndrome, Cancer",9
+1437909,myocarditis,G2,False,3,DEFINITE_OTHER_CAUSE,0.8,COVID-19 related myocarditis,STRONG_CAUSAL,0.0,True,True,False,C,HIGH,LOW,0.0,unknown,False,0,74.79,G2,Cancer,0
+1464028,myocarditis,G2,False,2,NO_ALTERNATIVE,0.0,NONE,UNLIKELY,54.0,True,False,True,C,HIGH,LOW,0.0,unknown,False,0,22.41,G2,Viral etiology,54
+1464592,myocarditis,G1,False,2,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,3.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,24.27,G1,Classic presentation,3
+1474640,myocarditis,G3,False,3,DEFINITE_OTHER_CAUSE,1.0,Ischemic heart disease (CAD/MI),STRONG_CAUSAL,3.0,True,True,True,C,HIGH,LOW,0.2,unknown,False,0,73.0,G3,EF 57%,3
+1482907,myocarditis,G2,False,1,POSSIBLE_OTHER_CAUSE,0.5,Ischemic heart disease (CAD/MI),STRONG_CAUSAL,3.0,True,True,False,B2,MEDIUM,MEDIUM,0.5,focal_punctate,False,0,92.04,G2,Viral etiology,?
+1482909,myocarditis,G2,False,1,POSSIBLE_OTHER_CAUSE,0.5,Ischemic heart disease (CAD/MI),STRONG_CAUSAL,3.0,True,True,False,B2,MEDIUM,MEDIUM,0.5,focal_punctate,False,0,149.34,G2,Viral etiology,?
+1489813,myocarditis,G2,False,3,POSSIBLE_OTHER_CAUSE,0.4,Viral myocarditis (infectious),STRONG_CAUSAL,0.0,True,True,False,B2,MEDIUM,MEDIUM,0.0,unknown,False,0,168.26,G2,Viral etiology,0
+1490272,myocarditis,G1,False,2,WEAK_ALTERNATIVE,0.2,Viral myocarditis (infectious),STRONG_CAUSAL,2.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,103.01,G1,Classic presentation,2
+1490549,myocarditis,G2,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,8.03,G2,COVID-19 positive,1
+1498145,myocarditis,G2,False,2,POSSIBLE_OTHER_CAUSE,0.4,Viral myocarditis (infectious),BACKGROUND_RATE,42.0,True,False,True,C,HIGH,LOW,0.0,unknown,False,0,75.48,G2,Viral etiology,42
+1499676,myocarditis,G3,False,3,POSSIBLE_OTHER_CAUSE,0.6,Giant cell myocarditis,BACKGROUND_RATE,33.0,True,False,True,C,HIGH,LOW,0.0,unknown,False,0,369.35,G3,EF 52%,33
+1499689,myocarditis,G2,False,1,POSSIBLE_OTHER_CAUSE,0.6,Giant cell myocarditis,BACKGROUND_RATE,23.0,True,False,False,C,HIGH,LOW,0.0,unknown,False,0,76.48,G2,Viral etiology,23
+1501224,myocarditis,G1,False,3,POSSIBLE_OTHER_CAUSE,0.6,Giant cell myocarditis,STRONG_CAUSAL,0.0,True,True,True,B2,MEDIUM,MEDIUM,0.0,unknown,False,0,269.61,G1,Classic presentation,0
+1511080,myocarditis,G1,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,67.4,G1,Classic presentation,1
+1515244,myocarditis,G3,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,117.72,G3,ECMO; Fulminant,59
+1515531,myocarditis,G1,False,3,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,1.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,121.45,G1,Classic presentation,1
+1549179,myocarditis,G1,False,1,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,3.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,133.49,G1,Classic presentation,3
+1591514,myocarditis,G2,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,142.41,G2,Cancer,3
+1592056,myocarditis,G2,False,3,POSSIBLE_OTHER_CAUSE,0.6,Viral myocarditis (infectious),STRONG_CAUSAL,0.0,True,True,False,B2,MEDIUM,MEDIUM,0.0,unknown,False,0,119.08,G2,Viral etiology; Rheumatoid,0
+1592526,myocarditis,G3,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,86.01,G3,EF 64%,3
+1636617,myocarditis,G2,False,2,NO_ALTERNATIVE,0.0,NONE,STRONG_CAUSAL,3.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,90.81,G2,Viral etiology,3
+1645372,myocarditis,G2,False,3,WEAK_ALTERNATIVE,0.2,Viral myocarditis (infectious),PLAUSIBLE,14.0,True,True,False,A1,HIGH,HIGH,0.2,unknown,True,0,125.48,G2,Cancer,14
+1645384,myocarditis,G3,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,30.65,G3,ECMO; Cardiac arrest; Cardiogenic shock,77
+1661275,myocarditis,G3,False,3,DEFINITE_OTHER_CAUSE,1.0,Giant cell myocarditis,PLAUSIBLE,9.0,True,True,False,C,HIGH,LOW,0.3,focal_punctate,False,0,218.74,G3,ECMO; Fulminant; EF 15%,?
+1666411,myocarditis,G3,False,3,POSSIBLE_OTHER_CAUSE,0.5,Giant cell myocarditis,BACKGROUND_RATE,37.0,True,False,False,C,HIGH,LOW,0.0,unknown,False,0,171.72,G3,VT,37
+1689697,myocarditis,G1,False,3,WEAK_ALTERNATIVE,0.2,Eosinophilic myocarditis,STRONG_CAUSAL,4.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,330.43,G1,Classic presentation,4
+1692252,myocarditis,G3,False,3,DEFINITE_OTHER_CAUSE,0.8,Toxin/ICI-induced myocarditis,UNKNOWN,,True,False,False,C,HIGH,LOW,0.3,focal_punctate,False,0,84.09,G3,VT,?
+1704121,myocarditis,G3,False,2,POSSIBLE_OTHER_CAUSE,0.6,Giant cell myocarditis,STRONG_CAUSAL,1.0,True,True,True,B2,MEDIUM,MEDIUM,0.2,unknown,False,0,92.6,G3,EF 40%,1
+1705028,myocarditis,G1,False,3,WEAK_ALTERNATIVE,0.2,Viral myocarditis (infectious),STRONG_CAUSAL,2.0,True,True,True,A1,HIGH,HIGH,0.2,unknown,False,0,203.66,G1,Classic presentation,2
+1708522,myocarditis,G2,False,1,WEAK_ALTERNATIVE,0.35,Viral myocarditis (infectious),STRONG_CAUSAL,1.0,True,True,True,A1,HIGH,HIGH,0.4,unknown,True,0,89.38,G2,Viral etiology,1
+1712137,myocarditis,G3,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,12.06,G3,Heart block; VT,3
+1735422,myocarditis,G3,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,106.41,G3,Inotropes; VF; Cardiac arrest; Cardiogenic shock,13
+1740551,myocarditis,G3,False,1,DEFINITE_OTHER_CAUSE,1.0,Giant cell myocarditis,STRONG_CAUSAL,4.0,True,True,False,C,HIGH,LOW,0.5,focal_punctate,False,0,109.39,G3,EF 40%,4
+1790502,myocarditis,G3,False,3,NO_ALTERNATIVE,0.0,NONE,UNKNOWN,,True,False,False,Unclassifiable,LOW,MEDIUM,0.0,unknown,False,0,33.95,G3,VT,?
+1793549,myocarditis,G2,False,3,DEFINITE_OTHER_CAUSE,0.8,COVID-19 related myocarditis,STRONG_CAUSAL,1.0,True,True,False,C,HIGH,LOW,0.2,unknown,False,0,252.69,G2,COVID-19 positive,1
+1795077,myocarditis,G2,True,4,,,,,,,,,Unclassifiable,,UNCLASSIFIABLE,,,,0,56.11,G2,Cancer,1
+1828901,myocarditis,G3,False,2,DEFINITE_OTHER_CAUSE,0.8,Viral myocarditis (infectious),BACKGROUND_RATE,36.0,True,False,False,C,HIGH,LOW,0.0,unknown,False,0,136.14,G3,VT; Cardiac arrest; EF 40%,36
+1829441,myocarditis,G3,False,1,DEFINITE_OTHER_CAUSE,1.0,Giant cell myocarditis,STRONG_CAUSAL,5.0,True,True,False,C,HIGH,LOW,0.0,unknown,False,0,151.17,G3,Dobutamine; EF 35%,5
