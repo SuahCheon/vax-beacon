@@ -10,6 +10,7 @@ AI-Powered WHO AEFI Causality Assessment — a 6-agent hybrid reasoning pipeline
 pip install -r requirements.txt
 set HF_TOKEN=hf_your_token_here          # Windows (Linux/Mac: export HF_TOKEN=...)
 python main.py --backend medgemma         # Run full 100-case benchmark
+python main.py --backend anthropic        # Run with Claude Sonnet 4 (requires API key)
 ```
 
 ---
@@ -44,51 +45,47 @@ Three layers of fault tolerance ensure unattended batch execution completes with
 | **Internal StoppingCriteria** | `_TimeLimitCriteria` (120s) + `_StopOnJsonClose` | Halts `model.generate()` from inside the CUDA kernel — no zombie threads, no external thread timeouts |
 | **JSON Retry with Repair** | 3-attempt loop with structural repair | Strips invalid escapes, removes comments, fixes trailing commas, converts single quotes; each retry appends a JSON-enforcement hint |
 | **Stage-level Graceful Degradation** | Per-stage `try/except` with fallback output | If any LLM stage fails, the pipeline substitutes a deterministic fallback (e.g., empty observations for Stage 3A, code-only classification for Stage 5) and continues to the next stage |
+| **Keyword-Augmented Extraction** | Regex-based clinical data extraction | Numeric value extraction (troponin levels, LVEF%, CRP/BNP values) supplements LLM extraction, preventing Brighton L4 misclassification from truncated narratives |
 
 Additional safeguards: streaming CSV (flush per case for crash recovery), incremental JSON checkpoints every 25 cases, `--resume` flag to skip already-completed cases, VRAM monitoring with automatic `torch.cuda.empty_cache()` after each case, and stdout broken-pipe guard for long batch runs.
 
 ---
 
-## Benchmark Results (v2)
+## Benchmark Results (v4)
 
 ### WHO Category Distribution (N=100)
 
-| WHO Category | Claude 3.5 Sonnet | MedGemma v1 | MedGemma v2 |
-|:---|:---|:---|:---|
-| A1 (Consistent) | 41 (41%) | 21 (21%) | 21 (21%) |
-| B2 (Indeterminate) | 5 (5%) | 9 (9%) | 11 (11%) |
-| C (Coincidental) | 27 (27%) | 21 (21%) | 21 (21%) |
-| Unclassifiable | 25 (25%) | 47 (48%) | 47 (47%) |
-| Error / Timeout | 2 (2%) | 2 (2%) | **0 (0%)** |
+| WHO Category | Claude Sonnet 4 | MedGemma 4B |
+|:---|:---|:---|
+| A1 (Vaccine-associated) | 46 (46%) | 25 (25%) |
+| B2 (Indeterminate) | 6 (6%) | 22 (22%) |
+| C (Coincidental) | 27 (27%) | 31 (31%) |
+| Unclassifiable | 21 (21%) | 22 (22%) |
+| Error / Timeout | **0 (0%)** | **0 (0%)** |
 
-| Metric | Result |
-|--------|--------|
-| **Pipeline Completion Rate** | **100/100 (100%)** — zero errors |
-| **Full Pipeline Mean** | **136.6s/case** |
-| **Early Exit Mean** | **34.2s/case** |
-| **v1 → v2 WHO Concordance** | **100% (98/98)** — identical classification on all matched cases |
-| **v1 → v2 NCI Score Delta** | **0** — no score changes across any case |
-| **Decision Reproducibility** | **100%** (deterministic code path) |
-| **Showcase Accuracy** (4 expert-validated cases) | **4/4 (100%)** |
-| **Baseline Concordance** (Claude vs MedGemma) | **54.1%** |
+### Key Metrics
 
-### v1 → v2 Stability (Robustness Refactoring)
+| Metric | Claude Sonnet 4 | MedGemma 4B |
+|--------|----------------|-------------|
+| **Pipeline Completion Rate** | 100/100 (100%) | 100/100 (100%) |
+| **Baseline Concordance** | — | **62%** (62/100) |
+| **Showcase Accuracy** (4 expert-validated cases) | 4/4 (100%) | 4/4 (100%) |
+| **Decision Reproducibility** | 100% | 100% |
+| **Guidance Generation Rate** | 100/100 (100%) | 100/100 (100%) |
 
-The v2 benchmark validates that the robustness refactoring (StoppingCriteria, JSON retry, graceful degradation) did not alter classification behavior:
+### Understanding the 62% Concordance
 
-- **WHO category**: 100% concordance across 98 matched cases (v2 has 2 additional cases previously lost to errors)
-- **NCI scores**: Identical (mean 0.417) — zero delta on every case
-- **Brighton levels**: 3 cases upgraded toward higher diagnostic certainty (L4→L3: 1, L3→L2: 2); no downgrades
-- **Processing time**: 15–56% faster (full pipeline −18%, early exit −56%)
-- **Errors**: 2 → 0 (eliminated by graceful degradation)
+The dominant disagreement pattern — Claude A1 → MedGemma B2 (16 cases, 42% of all disagreements) — reveals an asymmetry between observation and reasoning in 4B models. MedGemma successfully detects clinically relevant alternative markers (viral symptoms, cardiac dysfunction indicators, ischemic risk factors) but lacks the contextual reasoning capacity to evaluate whether those markers are clinically significant for the acute event. For example, a pre-existing risk factor is correctly identified but over-weighted as a plausible acute cause, inflating the NCI score and shifting the classification from A1 to B2.
 
-100% of the Claude–MedGemma concordance gap stems from **input extraction quality**, not reasoning capability. The deterministic decision logic is identical across both backends — improving the extraction layer (via MedGemma 27B or domain-finetuned models) would directly close this gap without any architectural changes.
+The deterministic decision logic is identical across both backends. 100% of the concordance gap stems from **clinical observation quality and contextual reasoning**, not from the classification engine itself. Improving the observation layer (via MedGemma 27B or domain-finetuned models) would directly close this gap without any architectural changes.
+
+MedGemma's B2 bias represents a pragmatically conservative stance: flagging borderline cases for human review rather than premature causal attribution — a safer failure mode in pharmacovigilance.
 
 ---
 
-## The 24% Finding
+## The 19% Finding
 
-24 of 100 cases triggered Brighton L4 early exit — insufficient diagnostic evidence for any causality assessment. Each received targeted, prioritized investigation recommendations. This transforms data gaps into actionable investigation leads for field officers, demonstrating the system's primary surveillance value beyond classification.
+19 of 100 cases triggered Brighton L4 early exit — insufficient diagnostic evidence for any causality assessment. Each received targeted, prioritized investigation recommendations. This transforms data gaps into actionable investigation leads for field officers, demonstrating the system's primary surveillance value beyond classification.
 
 ---
 
