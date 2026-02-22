@@ -454,6 +454,8 @@ def run_single_case(llm: LLMClient, row: pd.Series, verbose: bool = True) -> dic
     case_text = get_case_input(row)
 
     # Truncate long narratives for MedGemma token budget
+    # Keep original for code-based extraction (keyword fallback needs full text)
+    original_case_text = case_text
     if llm.backend == "medgemma":
         original_len = len(case_text)
         case_text = _truncate_narrative(case_text)
@@ -475,7 +477,7 @@ def run_single_case(llm: LLMClient, row: pd.Series, verbose: bool = True) -> dic
         # MedGemma: time limit is enforced inside model.generate() via
         # _TimeLimitCriteria (StoppingCriteria), so no external thread timeout needed.
         # This prevents zombie CUDA threads that cause intermittent hangs.
-        result["stages"]["stage1_icsr"] = run_stage1(llm, case_text)
+        result["stages"]["stage1_icsr"] = run_stage1(llm, case_text, original_case_text)
         result["processing_time"]["stage1"] = round(time.time() - t0, 2)
         if indicator:
             indicator.stop()

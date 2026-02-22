@@ -11,19 +11,23 @@ from llm_client import LLMClient
 from prompts.system_prompts import STAGE1_ICSR_EXTRACTOR, STAGE1_ICSR_EXTRACTOR_MEDGEMMA
 
 
-def run_stage1(llm: LLMClient, case_text: str) -> dict:
+def run_stage1(llm: LLMClient, case_text: str, original_case_text: str = None) -> dict:
     """
     Extract structured ICSR data from a raw VAERS report.
 
     Args:
         llm: LLM client instance
-        case_text: Formatted VAERS case text (from data_loader.get_case_input)
+        case_text: Formatted VAERS case text (may be truncated for LLM)
+        original_case_text: Original untruncated text for code extraction (MedGemma only).
+                           If None, uses case_text for both.
 
     Returns:
         Structured ICSR dict with demographics, vaccine, event, clinical data, etc.
     """
     if llm.backend == "medgemma":
-        return _run_stage1_medgemma(llm, case_text)
+        # Code extraction uses original (untruncated) text for full keyword coverage
+        # LLM uses potentially truncated text to fit token budget
+        return _run_stage1_medgemma(llm, case_text, original_case_text or case_text)
 
     result = llm.query_json(
         system_prompt=STAGE1_ICSR_EXTRACTOR,
@@ -125,63 +129,67 @@ def _extract_onset_days_from_narrative(narrative: str) -> float:
     return None
 
 
-def _run_stage1_medgemma(llm: LLMClient, case_text: str) -> dict:
+def _run_stage1_medgemma(llm: LLMClient, case_text: str, original_text: str = None) -> dict:
     """
     MedGemma hybrid extraction:
-    1. Code parses structured VAERS fields (demographics, vaccine, timeline, outcomes)
-    2. LLM only analyzes the narrative text for clinical data and summary
+    1. Code parses structured VAERS fields from ORIGINAL text (demographics, vaccine, timeline, outcomes)
+    2. LLM analyzes the (possibly truncated) narrative for clinical data and summary
+    3. Keyword fallback uses ORIGINAL text for full coverage
     """
+    # Use original untruncated text for all code-based extraction
+    code_text = original_text or case_text
+
     # --- Code extraction of structured fields ---
-    vaers_id_m = re.search(r"VAERS REPORT ID:\s*(\d+)", case_text)
+    vaers_id_m = re.search(r"VAERS REPORT ID:\s*(\d+)", code_text)
     vaers_id = int(vaers_id_m.group(1)) if vaers_id_m else None
 
-    age = _safe_float(_extract_field(case_text, "Age"))
-    sex = _extract_field(case_text, "Sex")
-    state = _extract_field(case_text, "State")
+    age = _safe_float(_extract_field(code_text, "Age"))
+    sex = _extract_field(code_text, "Sex")
+    state = _extract_field(code_text, "State")
 
-    vax_name = _extract_field(case_text, "Vaccine")
-    manufacturer = _extract_field(case_text, "Manufacturer")
-    dose_str = _extract_field(case_text, "Dose")
+    vax_name = _extract_field(code_text, "Vaccine")
+    manufacturer = _extract_field(code_text, "Manufacturer")
+    dose_str = _extract_field(code_text, "Dose")
     dose_number = None
     if dose_str:
         try:
             dose_number = int(float(dose_str))
         except (ValueError, TypeError):
             pass
-    lot = _extract_field(case_text, "Lot")
-    vax_date_raw = _extract_field(case_text, "Vaccination Date")
+    lot = _extract_field(code_text, "Lot")
+    vax_date_raw = _extract_field(code_text, "Vaccination Date")
     vax_date = _parse_date(vax_date_raw)
-    onset_date_raw = _extract_field(case_text, "Onset Date")
+    onset_date_raw = _extract_field(code_text, "Onset Date")
     onset_date = _parse_date(onset_date_raw)
-    numdays = _safe_float(_extract_field(case_text, "Days to Onset"))
+    numdays = _safe_float(_extract_field(code_text, "Days to Onset"))
 
     # --- Narrative fallback: extract days_to_onset when CSV fields are empty ---
     if numdays is None and onset_date is None:
-        narrative = _extract_section(case_text, "NARRATIVE") or ""
+        narrative = _extract_section(code_text, "NARRATIVE") or ""
         numdays = _extract_onset_days_from_narrative(narrative)
 
     # Outcomes
-    died = _parse_bool(_extract_field(case_text, "Died"))
-    life_threat = _parse_bool(_extract_field(case_text, "Life-threatening"))
-    er_visit = _parse_bool(_extract_field(case_text, "ER Visit"))
-    hospitalized = _parse_bool(_extract_field(case_text, "Hospitalized"))
-    hospital_days_str = _extract_field(case_text, "Hospital Days")
+    died = _parse_bool(_extract_field(code_text, "Died"))
+    life_threat = _parse_bool(_extract_field(code_text, "Life-threatening"))
+    er_visit = _parse_bool(_extract_field(code_text, "ER Visit"))
+    hospitalized = _parse_bool(_extract_field(code_text, "Hospitalized"))
+    hospital_days_str = _extract_field(code_text, "Hospital Days")
     hospital_days = None
     if hospital_days_str:
         try:
             hospital_days = int(float(hospital_days_str))
         except (ValueError, TypeError):
             pass
-    recovered = _extract_field(case_text, "Recovered")
+    recovered = _extract_field(code_text, "Recovered")
 
-    # Sections
-    narrative = _extract_section(case_text, "NARRATIVE") or ""
-    lab_data = _extract_section(case_text, "LABORATORY DATA")
-    history = _extract_section(case_text, "MEDICAL HISTORY")
-    cur_ill = _extract_section(case_text, "CURRENT ILLNESS AT TIME OF VACCINATION")
-    meds = _extract_section(case_text, "MEDICATIONS")
-    allergies = _extract_section(case_text, "ALLERGIES")
-    coded_symptoms = _extract_section(case_text, "CODED SYMPTOMS (MedDRA)")
+    # Sections — always from original untruncated text
+    narrative = _extract_section(code_text, "NARRATIVE") or ""
+    lab_data = _extract_section(code_text, "LABORATORY DATA")
+    history = _extract_section(code_text, "MEDICAL HISTORY")
+    cur_ill = _extract_section(code_text, "CURRENT ILLNESS AT TIME OF VACCINATION")
+    meds = _extract_section(code_text, "MEDICATIONS")
+    allergies = _extract_section(code_text, "ALLERGIES")
+    coded_symptoms = _extract_section(code_text, "CODED SYMPTOMS (MedDRA)")
 
     # --- LLM: focused narrative analysis only ---
     llm_input = f"Narrative: {narrative}"
