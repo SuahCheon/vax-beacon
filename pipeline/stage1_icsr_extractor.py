@@ -217,15 +217,23 @@ def _run_stage1_medgemma(llm: LLMClient, case_text: str) -> dict:
     # --- Keyword-based fallback for clinical data ---
     all_text = (narrative + " " + (lab_data or "") + " " + (coded_symptoms or "")).lower()
 
-    # Troponin fallback (includes abbreviations: cTnI, cTnT, hs-TnI, trop)
+    # Troponin fallback — try numeric extraction first, then keyword
     if not troponin.get("elevated"):
-        if re.search(r"tr[ao]ponin\s*(increased|elevated|high|positive|abnormal|\d)", all_text):
+        # Priority 1: Extract actual numeric value
+        trop_num = (
+            re.search(r"(?:peak\s+)?tr[ao]ponin\s*[ti]?\s*[:=]?\s*(\d+[\.,]?\d*)\s*(ng/[mld]l|ug/l|pg/ml)?", all_text)
+            or re.search(r"(?:ctni|ctnt|hs-?tni|hs-?tnt)\s*[:=]?\s*(\d+[\.,]?\d*)\s*(ng/[mld]l|ug/l|pg/ml)?", all_text)
+        )
+        if trop_num:
+            val_str = trop_num.group(1).replace(",", ".")
+            unit = trop_num.group(2) or ""
+            troponin = {"value": f"{val_str} {unit}".strip(), "elevated": True}
+        # Priority 2: Qualitative keywords
+        elif re.search(r"tr[ao]ponin\s*(increased|elevated|high|positive|abnormal)", all_text):
             troponin = {"value": "elevated", "elevated": True}
-        elif re.search(r"high\s+tr[ao]ponin", all_text):
+        elif re.search(r"(high|elevated|increased)\s+tr[ao]ponin", all_text):
             troponin = {"value": "elevated", "elevated": True}
         elif re.search(r"\+\s*tr[ao]ponin", all_text):
-            troponin = {"value": "elevated", "elevated": True}
-        elif re.search(r"elevated\s+tr[ao]ponin", all_text):
             troponin = {"value": "elevated", "elevated": True}
         elif re.search(r"\b(ctni|ctnt|hs-?tni|hs-?tnt|hs-?troponin)\b", all_text):
             troponin = {"value": "elevated", "elevated": True}
@@ -240,24 +248,50 @@ def _run_stage1_medgemma(llm: LLMClient, case_text: str) -> dict:
         elif re.search(r"tr[ao]ponin", all_text):
             troponin = troponin if troponin else {"value": "mentioned", "elevated": None}
 
-    # ECG fallback (includes ST findings, 12-lead)
+    # ECG fallback — capture full finding sentence when possible
     if not clin.get("ecg_findings"):
-        if re.search(r"\b(ecg|ekg|electrocardiogram)\b", all_text):
-            clin["ecg_findings"] = "performed"
+        # Priority 1: ECG + verb + findings sentence
+        ecg_detail = re.search(
+            r"(?:ecg|ekg|electrocardiogram)\s+(?:show(?:ed|s|ing)?|demonstrat\w+|reveal\w+|findings?[:\s])\s*([^.;]{5,120})",
+            all_text,
+        )
+        if ecg_detail:
+            clin["ecg_findings"] = ecg_detail.group(0).strip()[:150]
+        # Priority 2: ST-specific findings anywhere
         elif re.search(r"\bst[\s-]*(elevation|segment|depression|change)", all_text):
-            clin["ecg_findings"] = "ST changes"
+            st_match = re.search(r"((?:diffuse|lateral|anterior|inferior)?\s*st[\s-]*(?:elevation|segment|depression|change)[^.;]{0,80})", all_text)
+            clin["ecg_findings"] = st_match.group(1).strip()[:150] if st_match else "ST changes"
+        # Priority 3: Just mentioned
+        elif re.search(r"\b(ecg|ekg|electrocardiogram)\b", all_text):
+            clin["ecg_findings"] = "performed"
         elif re.search(r"\b12[\s-]*lead\b", all_text):
             clin["ecg_findings"] = "performed"
 
-    # Echo fallback (includes TTE, TEE, EF/LVEF, GLS)
+    # Echo fallback — extract LVEF + abnormalities
     if not clin.get("echo_findings"):
-        if re.search(r"\b(echo|echocardiogram|ecco)\b", all_text):
+        echo_parts = []
+        # Priority 1: LVEF numeric extraction
+        ef_match = re.search(r"(?:lvef|ejection\s+fraction|\bef\b)\s*(?:of\s*|was\s*|[:=]\s*)?(\d{1,2})\s*%", all_text)
+        if ef_match:
+            ef_val = int(ef_match.group(1))
+            echo_parts.append(f"LVEF {ef_val}%" + (", reduced" if ef_val < 55 else ", normal"))
+        # Priority 2: Specific abnormalities
+        if re.search(r"wall\s+motion\s+abnormalit", all_text):
+            echo_parts.append("wall motion abnormality")
+        if re.search(r"pericardial\s+effusion", all_text):
+            echo_parts.append("pericardial effusion")
+        if re.search(r"global\s+hypokinesis", all_text):
+            echo_parts.append("global hypokinesis")
+        if re.search(r"diastolic\s+dysfunction", all_text):
+            echo_parts.append("diastolic dysfunction")
+        if re.search(r"\b(global\s+longitudinal\s+strain|gls)\b", all_text):
+            echo_parts.append("GLS abnormality")
+        if echo_parts:
+            clin["echo_findings"] = ", ".join(echo_parts)
+        # Priority 3: Just mentioned
+        elif re.search(r"\b(echo|echocardiogram|ecco)\b", all_text):
             clin["echo_findings"] = "performed"
         elif re.search(r"\b(tte|tee)\b", all_text):
-            clin["echo_findings"] = "performed"
-        elif re.search(r"\b(lvef|ef\s+\d)", all_text):
-            clin["echo_findings"] = "performed"
-        elif re.search(r"\b(global\s+longitudinal\s+strain|gls)\b", all_text):
             clin["echo_findings"] = "performed"
 
     # Cardiac MRI fallback (includes LGE pattern, CMR, myocardial edema)
@@ -295,16 +329,31 @@ def _run_stage1_medgemma(llm: LLMClient, case_text: str) -> dict:
         elif re.search(r"\bmri\b", all_text):
             clin["cardiac_mri"] = "performed"
 
-    # CRP/ESR fallback (includes "sed rate", "sedimentation rate")
+    # CRP/ESR fallback — try numeric extraction first
     if not crp.get("elevated"):
-        if re.search(r"\b(crp|esr|c-reactive)\s*(elevated|high|increased|\d)", all_text):
+        crp_num = re.search(r"(?:crp|c-reactive\s+protein)\s*[:=]?\s*(\d+[\.,]?\d*)\s*(mg/[ld]l|mg/l)?", all_text)
+        esr_num = re.search(r"(?:esr|sed(?:imentation)?\s+rate)\s*[:=]?\s*(\d+[\.,]?\d*)\s*(mm/hr?)?", all_text)
+        if crp_num:
+            val_str = crp_num.group(1).replace(",", ".")
+            unit = crp_num.group(2) or ""
+            crp = {"value": f"CRP {val_str} {unit}".strip(), "elevated": True}
+        elif esr_num:
+            val_str = esr_num.group(1).replace(",", ".")
+            unit = esr_num.group(2) or ""
+            crp = {"value": f"ESR {val_str} {unit}".strip(), "elevated": True}
+        elif re.search(r"\b(crp|esr|c-reactive)\s*(elevated|high|increased)", all_text):
             crp = {"value": "elevated", "elevated": True}
-        elif re.search(r"\bsed(imentation)?\s+rate\s*(elevated|high|increased|\d)", all_text):
+        elif re.search(r"\bsed(imentation)?\s+rate\s*(elevated|high|increased)", all_text):
             crp = {"value": "elevated", "elevated": True}
 
-    # BNP fallback
+    # BNP fallback — try numeric extraction first
     if not bnp.get("elevated"):
-        if re.search(r"\b(bnp|pro-?bnp|nt-?probnp)\s*(elevated|high|increased|\d)", all_text):
+        bnp_num = re.search(r"(?:nt-?pro-?bnp|pro-?bnp|bnp)\s*[:=]?\s*(\d+[\.,]?\d*)\s*(pg/ml|ng/l)?", all_text)
+        if bnp_num:
+            val_str = bnp_num.group(1).replace(",", ".")
+            unit = bnp_num.group(2) or ""
+            bnp = {"value": f"{val_str} {unit}".strip(), "elevated": True}
+        elif re.search(r"\b(bnp|pro-?bnp|nt-?probnp)\s*(elevated|high|increased)", all_text):
             bnp = {"value": "elevated", "elevated": True}
 
     # Determine primary diagnosis from coded symptoms and narrative
