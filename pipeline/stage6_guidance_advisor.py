@@ -401,6 +401,7 @@ def _run_normal(
         "stage3_ddx": ddx_data,
         "stage4_temporal_known_ae": temporal_data,
         "stage5_causality": causality_data,
+        "mechanistic_assessment": (temporal_data or {}).get("mechanistic_assessment", {}),
     }
 
     # Build the prompt with protocol + temporal context injected
@@ -507,6 +508,13 @@ def _normal_code_template(
         "temporal_clarity": "CLEAR" if days_to_onset is not None else "MISSING",
     }
 
+    # --- MRI/Mechanistic guidance (Nordic Study) ---
+    mechanistic = (temporal_data or {}).get("mechanistic_assessment", {})
+    mri_guidance = _build_mri_guidance(mechanistic, icsr_data)
+    if mri_guidance:
+        investigative_gaps.append(mri_guidance)
+        recommended_actions.append(mri_guidance["action"])
+
     # Officer summary — code-only template (no LLM)
     officer_summary = _build_officer_summary(who_category, condition, age, sex, days_to_onset, dominant_alt)
 
@@ -520,6 +528,84 @@ def _normal_code_template(
         "quality_flags": quality_flags,
         "officer_summary": officer_summary,
         "confidence": "DETERMINISTIC",
+    }
+
+
+def _build_mri_guidance(mechanistic: dict, icsr_data: dict) -> dict:
+    """Generate MRI-specific investigation guidance based on mechanistic assessment.
+
+    Nordic Study-informed recommendations:
+    - No MRI: recommend with specific objectives
+    - Focal LGE: note VAM consistency, recommend follow-up
+    - Diffuse LGE: recommend viral/systemic DDx workup
+    - Subendocardial LGE: recommend ischemic workup
+    """
+    if not mechanistic:
+        return None
+
+    clinical = icsr_data.get("clinical_data", {})
+    mri_text = str(clinical.get("cardiac_mri", "") or "").lower()
+    lge_pattern = mechanistic.get("lge_pattern", "unknown")
+
+    # No MRI performed — recommend with specific objectives
+    if not mri_text or mri_text in ("none", "null", ""):
+        return {
+            "gap": "Cardiac MRI not performed",
+            "priority": "HIGH",
+            "action": (
+                "Order cardiac MRI with T2 mapping and LGE protocol. "
+                "Objectives: (a) confirm myocardial inflammation (Lake Louise), "
+                "(b) assess involvement extent (focal vs diffuse), "
+                "(c) exclude GCM (diffuse mid-wall LGE), "
+                "(d) exclude ischemic etiology (subendocardial LGE)."
+            ),
+            "impact_on_classification": "MRI pattern may support or weaken vaccine causation hypothesis.",
+        }
+
+    # MRI performed — pattern-specific guidance
+    if lge_pattern == "focal_punctate":
+        return {
+            "gap": "MRI follow-up: focal/punctate LGE detected",
+            "priority": "MEDIUM",
+            "action": (
+                "Focal/punctate LGE pattern is consistent with vaccine-associated myocarditis "
+                "(Nordic Study). Consider follow-up MRI at 3-6 months to assess resolution."
+            ),
+            "impact_on_classification": "Focal LGE supports vaccine-associated mechanism.",
+        }
+    elif lge_pattern == "diffuse":
+        return {
+            "gap": "MRI finding: diffuse LGE pattern",
+            "priority": "HIGH",
+            "action": (
+                "Diffuse LGE pattern suggests viral or systemic etiology rather than "
+                "vaccine-associated myocarditis. Recommend: viral serology panel, "
+                "autoimmune markers (ANA, anti-dsDNA), consider EMB if clinically indicated."
+            ),
+            "impact_on_classification": "Diffuse LGE may support alternative etiology (C).",
+        }
+    elif lge_pattern == "subendocardial":
+        return {
+            "gap": "MRI finding: subendocardial LGE pattern",
+            "priority": "HIGH",
+            "action": (
+                "Subendocardial LGE pattern suggests ischemic etiology. "
+                "Recommend: coronary angiography or CT angiography to exclude CAD. "
+                "Review cardiac risk factors."
+            ),
+            "impact_on_classification": "Subendocardial LGE may indicate ischemic cause (C).",
+        }
+
+    # MRI performed but pattern unknown (just "performed")
+    return {
+        "gap": "MRI LGE pattern not specified",
+        "priority": "MEDIUM",
+        "action": (
+            "MRI was performed but LGE distribution pattern not documented. "
+            "Request detailed MRI report specifying: LGE distribution (focal/diffuse/subendocardial), "
+            "T2 edema presence, and Lake Louise criteria assessment."
+        ),
+        "impact_on_classification": "LGE pattern helps differentiate vaccine-associated vs other etiology.",
     }
 
 

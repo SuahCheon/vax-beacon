@@ -138,6 +138,83 @@ def _build_investigation_guidance(temporal_zone: str) -> dict:
         }
 
 
+# --- Mechanistic Signature Detection (Nordic Study, Karlstad 2022) ---
+def _detect_mechanistic_signatures(icsr_data: dict, ddx_data: dict) -> dict:
+    """Detect pathognomonic signatures of vaccine-associated myocarditis (VAM).
+
+    Based on Nordic cohort studies (Karlstad 2022, Altman 2023):
+    - Focal/punctate LGE pattern on MRI (vs diffuse in viral)
+    - Isolated fever without infectious prodrome (innate immune activation)
+    - Hyper-acute onset (peak day 2-4)
+
+    All detection is keyword-based (no LLM). Returns mechanistic_score (0-1.0).
+    """
+    score = 0.0
+    findings = []
+    clinical = icsr_data.get("clinical_data", {})
+    event = icsr_data.get("event", {})
+
+    # --- Track A: MRI/LGE Pattern ---
+    mri_text = str(clinical.get("cardiac_mri", "") or "").lower()
+    lge_pattern = "unknown"
+
+    if any(kw in mri_text for kw in ["focal", "punctate", "patchy"]):
+        lge_pattern = "focal_punctate"
+        score += 0.3
+        findings.append("MRI: Focal/punctate LGE (VAM signature)")
+    elif any(kw in mri_text for kw in ["diffuse", "global", "widespread"]):
+        lge_pattern = "diffuse"
+        score -= 0.1
+        findings.append("MRI: Diffuse LGE (viral/systemic pattern)")
+    elif any(kw in mri_text for kw in ["subendocardial"]):
+        lge_pattern = "subendocardial"
+        score -= 0.1
+        findings.append("MRI: Subendocardial LGE (ischemic pattern)")
+
+    # --- Track B: Isolated Fever (no infectious prodrome) ---
+    # Check Stage 3A observations if available, else use narrative
+    observations = ddx_data.get("clinical_observations", {})
+    infectious = observations.get("infectious_signs", [])
+
+    narrative_text = str(event.get("narrative_summary", "")).lower()
+    symptoms = [s.lower() for s in event.get("symptoms", [])]
+    all_symptom_text = " ".join(symptoms) + " " + narrative_text
+
+    has_fever = any(kw in all_symptom_text for kw in
+                    ["fever", "pyrexia", "febrile", "chills"])
+    has_prodrome = any(kw in all_symptom_text for kw in
+                       ["cough", "rhinorrhea", "sore throat", "congestion",
+                        "diarrhea", "vomiting", "upper respiratory", "uri"])
+
+    # Also check Stage 3A infectious_signs for prodromal indicators
+    if infectious:
+        for obs in infectious:
+            finding = str(obs.get("finding", "")).lower()
+            if any(kw in finding for kw in ["uri", "respiratory", "gastro", "viral"]):
+                has_prodrome = True
+
+    if has_fever and not has_prodrome:
+        score += 0.2
+        findings.append("Isolated fever without prodrome (innate immune activation)")
+    elif has_fever and has_prodrome:
+        findings.append("Fever with prodromal symptoms (infectious pattern)")
+
+    # --- Track C: Hyper-Acute Onset (peak day 1-4) ---
+    days = event.get("days_to_onset")
+    if days is not None and 1 <= float(days) <= 4:
+        score += 0.2
+        findings.append(f"Hyper-acute onset day {int(days)} (peak mechanistic window)")
+
+    return {
+        "mechanistic_score": round(max(score, 0.0), 2),
+        "lge_pattern": lge_pattern,
+        "isolated_fever": has_fever and not has_prodrome,
+        "has_prodrome": has_prodrome,
+        "findings": findings,
+        "is_concordant": score >= 0.4,
+    }
+
+
 def run_stage4(icsr_data: dict, brighton_data: dict, ddx_data: dict) -> dict:
     """
     WHO Step 2: Known AE verification + Temporal plausibility.
@@ -182,6 +259,9 @@ def run_stage4(icsr_data: dict, brighton_data: dict, ddx_data: dict) -> dict:
         and temporal["temporal_zone"] in ("STRONG_CAUSAL", "PLAUSIBLE")
     )
 
+    # --- 5. Mechanistic Signature Detection (Nordic Study) ---
+    mechanistic = _detect_mechanistic_signatures(icsr_data, ddx_data)
+
     # --- Flags ---
     flags = []
     if temporal["temporal_zone"] == "BACKGROUND_RATE":
@@ -198,6 +278,12 @@ def run_stage4(icsr_data: dict, brighton_data: dict, ddx_data: dict) -> dict:
         flags.append(f"NOT_KNOWN_AE: {known_ae_result['evidence_level']} evidence for this vaccine-AE pair")
     if event.get("onset_approximate"):
         flags.append("APPROXIMATE_ONSET: Onset date estimated from narrative, verify exact date")
+    if mechanistic["is_concordant"]:
+        flags.append(f"MECHANISTIC_CONCORDANT: Score {mechanistic['mechanistic_score']}, {'; '.join(mechanistic['findings'])}")
+    if mechanistic["lge_pattern"] == "diffuse":
+        flags.append("DIFFUSE_LGE: Consider viral/systemic etiology")
+    if mechanistic["lge_pattern"] == "subendocardial":
+        flags.append("SUBENDOCARDIAL_LGE: Consider ischemic etiology")
 
     return {
         "vaers_id": vaers_id,
@@ -217,6 +303,7 @@ def run_stage4(icsr_data: dict, brighton_data: dict, ddx_data: dict) -> dict:
         "high_risk_group": high_risk,
         "who_step2_met": step2_met,
         "who_step2_notes": _build_step2_notes(known_ae_result, temporal, high_risk),
+        "mechanistic_assessment": mechanistic,
         "flags": flags,
     }
 

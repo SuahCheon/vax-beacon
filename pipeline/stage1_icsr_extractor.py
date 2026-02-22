@@ -260,16 +260,40 @@ def _run_stage1_medgemma(llm: LLMClient, case_text: str) -> dict:
         elif re.search(r"\b(global\s+longitudinal\s+strain|gls)\b", all_text):
             clin["echo_findings"] = "performed"
 
-    # Cardiac MRI fallback (includes LGE, CMR, myocardial edema)
+    # Cardiac MRI fallback (includes LGE pattern, CMR, myocardial edema)
+    # Preserve LGE distribution pattern for Stage 4 mechanistic analysis
     if not clin.get("cardiac_mri"):
-        if re.search(r"\b(cardiac\s*mri|cmr|mri)\b", all_text):
+        mri_findings = []
+        if re.search(r"\b(late\s+gadolinium\s+enhancement|lge)\b", all_text):
+            mri_findings.append("LGE positive")
+        if re.search(r"\b(focal|punctate|patchy)\b.*?(lge|enhancement|gadolinium)", all_text):
+            mri_findings.append("focal LGE")
+        elif re.search(r"\b(lge|enhancement|gadolinium).*?(focal|punctate|patchy)\b", all_text):
+            mri_findings.append("focal LGE")
+        if re.search(r"\b(diffuse|global|widespread)\b.*?(lge|enhancement|gadolinium)", all_text):
+            mri_findings.append("diffuse LGE")
+        elif re.search(r"\b(lge|enhancement|gadolinium).*?(diffuse|global|widespread)\b", all_text):
+            mri_findings.append("diffuse LGE")
+        if re.search(r"\bsubendocardial\b.*?(lge|enhancement|gadolinium)", all_text):
+            mri_findings.append("subendocardial LGE")
+        elif re.search(r"\b(lge|enhancement|gadolinium).*?subendocardial\b", all_text):
+            mri_findings.append("subendocardial LGE")
+        if re.search(r"\bmid[- ]?(wall|myocardial)\b.*?(lge|enhancement)", all_text):
+            mri_findings.append("mid-wall LGE")
+        if re.search(r"\bmyocardial\s+(edema|oedema)\b", all_text):
+            mri_findings.append("myocardial edema")
+        if re.search(r"\bt2\s*(mapping|elevation|signal|weighted)\b", all_text):
+            mri_findings.append("T2 abnormality")
+        if re.search(r"\b(lake\s+louise|ll\s+criteria)\b", all_text):
+            mri_findings.append("Lake Louise criteria")
+        if mri_findings:
+            clin["cardiac_mri"] = ", ".join(mri_findings)
+        elif re.search(r"\b(cardiac\s*mri|cmr)\b", all_text):
             clin["cardiac_mri"] = "performed"
-        elif re.search(r"\b(late\s+gadolinium\s+enhancement|lge)\b", all_text):
-            clin["cardiac_mri"] = "LGE positive"
         elif re.search(r"\bcardiac\s+magnetic\s+resonance\b", all_text):
             clin["cardiac_mri"] = "performed"
-        elif re.search(r"\bmyocardial\s+(edema|oedema)\b", all_text):
-            clin["cardiac_mri"] = "myocardial edema"
+        elif re.search(r"\bmri\b", all_text):
+            clin["cardiac_mri"] = "performed"
 
     # CRP/ESR fallback (includes "sed rate", "sedimentation rate")
     if not crp.get("elevated"):

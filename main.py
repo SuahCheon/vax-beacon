@@ -362,6 +362,7 @@ _SUMMARY_CSV_COLUMNS = [
     "brighton_level", "who_step1_conclusion", "max_nci", "dominant_alternative",
     "temporal_zone", "days_to_onset", "known_ae", "who_step2_met", "high_risk",
     "who_category", "confidence", "risk_signal",
+    "mechanistic_score", "lge_pattern", "isolated_fever",
     "errors", "total_time_s",
     "gt_group", "gt_severity", "gt_onset_days",
 ]
@@ -405,6 +406,9 @@ class _StreamingCSVWriter:
             "who_category": who_cat,
             "confidence": s5.get("confidence"),
             "risk_signal": s6.get("overall_risk_signal"),
+            "mechanistic_score": s4.get("mechanistic_assessment", {}).get("mechanistic_score"),
+            "lge_pattern": s4.get("mechanistic_assessment", {}).get("lge_pattern"),
+            "isolated_fever": s4.get("mechanistic_assessment", {}).get("isolated_fever"),
             "errors": len(result.get("errors", [])),
             "total_time_s": result.get("processing_time", {}).get("total"),
             "gt_group": gt.get("group"),
@@ -817,6 +821,9 @@ def save_results(results: list, tag: str = ""):
             "confidence": s5.get("confidence"),
             # Stage 6
             "risk_signal": s6.get("overall_risk_signal"),
+            "mechanistic_score": s4.get("mechanistic_assessment", {}).get("mechanistic_score"),
+            "lge_pattern": s4.get("mechanistic_assessment", {}).get("lge_pattern"),
+            "isolated_fever": s4.get("mechanistic_assessment", {}).get("isolated_fever"),
             "errors": len(r.get("errors", [])),
             "total_time_s": r.get("processing_time", {}).get("total"),
             # Ground truth
