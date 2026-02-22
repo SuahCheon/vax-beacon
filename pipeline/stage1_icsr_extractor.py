@@ -87,6 +87,44 @@ def _parse_bool(val: str) -> bool:
     return None
 
 
+def _extract_onset_days_from_narrative(narrative: str) -> float:
+    """Fallback: extract days_to_onset from narrative text when CSV fields are empty.
+
+    Targets literature reports that state onset interval in text, e.g.:
+      - "Days from administration to presentation is 3 days"
+      - "presented 9 days after her first vaccine dose"
+      - "the next day"
+      - "same day as vaccination"
+    Returns float (days) or None if no pattern matched.
+    """
+    text = narrative.lower()
+
+    # Pattern 1: "Days from administration to presentation: 3 days" (literature format)
+    m = re.search(r"days?\s+from\s+(?:administration|vaccination)\s+to\s+presentation[:\s]+(?:is\s+)?(\d+)", text)
+    if m:
+        return float(m.group(1))
+
+    # Pattern 2: onset verb + "X days after/post/following" (requires clinical context)
+    m = re.search(r"(?:present(?:ed|ing)|develop(?:ed|ing)|experienc(?:ed|ing)|onset|symptoms?\s+(?:started|began|appeared))\s+(\d+)\s*days?\s+(?:after|post|following)", text)
+    if m:
+        return float(m.group(1))
+
+    # Pattern 3: "X days after/post vaccine dose" (explicit dose reference)
+    m = re.search(r"(\d+)\s*days?\s+(?:after|post|following)\s+(?:the\s+)?(?:vaccine|vaccination|second|first|2nd|1st)\s+dose", text)
+    if m:
+        return float(m.group(1))
+
+    # Pattern 4: "the next day" / "the following day" -> 1 day
+    if re.search(r"(?:the\s+)?next\s+day|the\s+following\s+day", text):
+        return 1.0
+
+    # Pattern 5: "same day" / "day of vaccination" -> 0 days
+    if re.search(r"same\s+day|day\s+of\s+(?:the\s+)?vaccin", text):
+        return 0.0
+
+    return None
+
+
 def _run_stage1_medgemma(llm: LLMClient, case_text: str) -> dict:
     """
     MedGemma hybrid extraction:
@@ -116,6 +154,11 @@ def _run_stage1_medgemma(llm: LLMClient, case_text: str) -> dict:
     onset_date_raw = _extract_field(case_text, "Onset Date")
     onset_date = _parse_date(onset_date_raw)
     numdays = _safe_float(_extract_field(case_text, "Days to Onset"))
+
+    # --- Narrative fallback: extract days_to_onset when CSV fields are empty ---
+    if numdays is None and onset_date is None:
+        narrative = _extract_section(case_text, "NARRATIVE") or ""
+        numdays = _extract_onset_days_from_narrative(narrative)
 
     # Outcomes
     died = _parse_bool(_extract_field(case_text, "Died"))
