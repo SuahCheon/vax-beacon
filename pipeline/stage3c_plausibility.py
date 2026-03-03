@@ -28,7 +28,7 @@ _ALL_CLINICAL_MARKERS = [
     "fever_reported", "uri_symptoms", "gi_symptoms", "myalgia_arthralgia",
     "positive_viral_pcr", "lymphocytosis",
     # giant_cell_myocarditis
-    "rapid_heart_failure", "av_block_present", "ventricular_arrhythmia",
+    "rapid_heart_failure", "high_degree_av_block", "ventricular_arrhythmia",
     "cardiogenic_shock", "giant_cells_on_biopsy",
     # eosinophilic_myocarditis
     "peripheral_eosinophilia", "new_medication_history",
@@ -40,7 +40,7 @@ _ALL_CLINICAL_MARKERS = [
     "age_over_50", "prior_cad_history", "focal_st_changes",
     "positive_catheterization", "diabetes_hypertension", "smoking_history",
     # covid19_related
-    "active_covid19", "recent_covid_infection", "mis_c_criteria_met",
+    "active_covid19", "mis_c_criteria_met",
     "mis_a_criteria_met", "elevated_d_dimer",
     # autoimmune_inflammatory
     "known_autoimmune_dx", "positive_ana_dsdna", "systemic_inflammation",
