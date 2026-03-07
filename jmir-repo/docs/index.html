@@ -316,13 +316,91 @@
 
   .highlight { color: var(--accent); font-weight: 600; }
   .lab-data { font-family: 'Menlo', 'Consolas', monospace; font-size: 0.8rem; background: var(--bg); padding: 0.6rem; border-radius: 4px; margin-top: 0.4rem; }
+
+  /* Group bar */
+  .group-bar {
+    display: flex;
+    gap: 0;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .group-btn {
+    flex: 1;
+    padding: 0.6rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .group-btn:hover { color: var(--text); background: var(--surface); }
+  .group-btn.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: var(--surface);
+  }
+
+  /* Paper case badge variants */
+  .badge-b2-paper { background: var(--yellow); color: #000; }
+  .badge-c-paper { background: var(--accent); color: #000; }
+
+  /* Paper case banner variants */
+  .banner-b2-paper { background: linear-gradient(135deg, rgba(251,191,36,0.15), rgba(251,191,36,0.05)); border: 1px solid var(--yellow); }
+  .banner-b2-paper .who-cat { color: var(--yellow); }
+  .banner-c-paper { background: linear-gradient(135deg, rgba(56,189,248,0.15), rgba(56,189,248,0.05)); border: 1px solid var(--accent); }
+  .banner-c-paper .who-cat { color: var(--accent); }
+
+  /* Status icons */
+  .status-pass { color: var(--green); font-weight: 700; font-size: 0.85rem; margin-left: 0.3rem; }
+  .status-warn { color: var(--yellow); font-weight: 700; font-size: 0.85rem; margin-left: 0.3rem; }
+  .status-fail { color: var(--red); font-weight: 700; font-size: 0.85rem; margin-left: 0.3rem; }
+  .status-skip { color: var(--text-muted); font-weight: 700; font-size: 0.85rem; margin-left: 0.3rem; }
+
+  /* Fastest path box */
+  .fastest-path-box {
+    background: rgba(74, 222, 128, 0.08);
+    border: 1px solid var(--green);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    margin-top: 0.8rem;
+  }
+  .fastest-path-title {
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--green);
+    margin-bottom: 0.3rem;
+  }
+  .fastest-path-text { font-size: 0.84rem; }
+
+  /* Richness/Risk bar */
+  .meta-bar {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 0.6rem 1rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.8rem;
+  }
+  .meta-bar .meta-label { color: var(--text-muted); }
+  .meta-bar .meta-value { font-weight: 600; margin-left: 0.3rem; }
+  .risk-high { color: var(--red); }
+  .risk-medium { color: var(--yellow); }
+  .risk-low { color: var(--green); }
+  .priority-low { color: var(--green); }
 </style>
 </head>
 <body>
 
 <header>
   <h1><span>Vax-Beacon</span> &middot; Interactive Case Report Viewer</h1>
-  <p>Neuro-Symbolic AEFI Causality Assessment Pipeline &mdash; 4 Representative Cases</p>
+  <p>Neuro-Symbolic AEFI Causality Assessment Pipeline &mdash; 8 Representative Cases</p>
   <div class="subtitle-links">
     <a href="https://github.com/SuahCheon/vax-beacon" target="_blank">GitHub (Pipeline)</a>
     &nbsp;&middot;&nbsp;
@@ -332,8 +410,14 @@
   </div>
 </header>
 
-<!-- Tab bar -->
-<div class="tab-bar">
+<!-- Group selector -->
+<div class="group-bar">
+  <button class="group-btn active" onclick="showGroup('pipeline')">Pipeline Cases</button>
+  <button class="group-btn" onclick="showGroup('paper')">Paper Cases (Table 3)</button>
+</div>
+
+<!-- Pipeline Cases tab bar -->
+<div class="tab-bar" id="tabs-pipeline">
   <button class="tab-btn active" onclick="showCase('l4')">
     <span class="tab-label"><span class="badge badge-l4">L4</span> VAERS 1088210</span>
     <span class="tab-sub">Brighton L4 &rarr; Early Exit &rarr; Designed Deference</span>
@@ -349,6 +433,26 @@
   <button class="tab-btn" onclick="showCase('c')">
     <span class="tab-label"><span class="badge badge-c">C</span> VAERS 925542</span>
     <span class="tab-sub">WHO C &rarr; Coincidental (Coincident Condition)</span>
+  </button>
+</div>
+
+<!-- Paper Cases tab bar -->
+<div class="tab-bar" id="tabs-paper" style="display:none">
+  <button class="tab-btn" onclick="showCase('p-l4')">
+    <span class="tab-label"><span class="badge badge-l4">L4</span> VAERS 1321207</span>
+    <span class="tab-sub">Brighton L4 &rarr; Early Exit &rarr; Minimal Data</span>
+  </button>
+  <button class="tab-btn" onclick="showCase('p-a1')">
+    <span class="tab-label"><span class="badge badge-a1">A1</span> VAERS 1549179</span>
+    <span class="tab-sub">WHO A1 &rarr; Consistent Causal Association</span>
+  </button>
+  <button class="tab-btn" onclick="showCase('p-b2')">
+    <span class="tab-label"><span class="badge badge-b2-paper">B2</span> VAERS 1430395</span>
+    <span class="tab-sub">WHO B2 &rarr; Indeterminate (Viral Confounder)</span>
+  </button>
+  <button class="tab-btn" onclick="showCase('p-c')">
+    <span class="tab-label"><span class="badge badge-c-paper">C</span> VAERS 1263276</span>
+    <span class="tab-sub">WHO C &rarr; Coincidental (Giant Cell Myocarditis)</span>
   </button>
 </div>
 
@@ -1056,6 +1160,700 @@ EKG: ST segment depression in III, aVF, V4, V5
 </div>
 </div>
 
+<!-- ======================= PAPER CASE A: L4 ======================= -->
+<div class="case-container" id="case-p-l4">
+<div class="split">
+  <div class="pane pane-left">
+    <div class="pane-title">VAERS Original Report</div>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-label">VAERS ID</div>
+        <div class="info-value">1321207</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Age / Sex</div>
+        <div class="info-value">18 / Male</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Vaccine</div>
+        <div class="info-value">BNT162b2 (Pfizer-BioNTech)</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Dose</div>
+        <div class="info-value">Unknown</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Onset</div>
+        <div class="info-value">5 days post-vaccination</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">State</div>
+        <div class="info-value">California</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Symptoms</div>
+        <div class="info-value">Chest pain, Angina pectoris</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Condition</div>
+        <div class="info-value">Myocarditis</div>
+      </div>
+    </div>
+    <div class="narrative-label">Symptom Narrative</div>
+    <div class="narrative">
+      &ldquo;Gave me heart and chest pain (diagnosed with myocarditis)&rdquo;
+    </div>
+    <div class="narrative-label">Medical History</div>
+    <div class="narrative">
+      <strong>History:</strong> None reported<br>
+      <strong>Medications:</strong> None reported
+    </div>
+    <div class="narrative" style="margin-top:0.5rem; background: rgba(251,191,36,0.08); border-color: var(--yellow);">
+      <strong style="color:var(--yellow)">Note:</strong> This is an extremely minimal VAERS report &mdash; a single sentence with no biomarkers, imaging, or ECG data. It demonstrates the pipeline&rsquo;s &ldquo;Designed Deference&rdquo; behavior.
+    </div>
+  </div>
+  <div class="pane pane-right">
+    <div class="pane-title">Pipeline Output</div>
+    <div class="classification-banner banner-l4">
+      <div class="who-cat">Unclassifiable</div>
+      <div class="who-label">Brighton Level 4 &mdash; Insufficient diagnostic evidence</div>
+    </div>
+
+    <div class="stage open">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">1</div>
+        <div class="stage-name">ICSR Extraction</div>
+        <span class="status-warn">&#9888;</span>
+        <div class="stage-type">LLM</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">Status</div><div class="kv-val" style="color:var(--yellow)">Minimal data: chest pain and myocarditis dx only</div></div>
+        <div class="kv-row"><div class="kv-key">Condition</div><div class="kv-val">Myocarditis (reported diagnosis)</div></div>
+        <div class="kv-row"><div class="kv-key">Onset days</div><div class="kv-val">5</div></div>
+        <div class="kv-row"><div class="kv-key">Biomarkers</div><div class="kv-val" style="color:var(--text-muted)">None reported</div></div>
+        <div class="kv-row"><div class="kv-key">Imaging / ECG</div><div class="kv-val" style="color:var(--text-muted)">None reported</div></div>
+      </div>
+    </div>
+
+    <div class="stage open">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">2</div>
+        <div class="stage-name">Brighton Validation</div>
+        <span class="status-fail">&#10007;</span>
+        <div class="stage-type">Code</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">Brighton Level</div><div class="kv-val" style="color:var(--yellow);font-weight:700">Level 4 (Insufficient Data)</div></div>
+        <div class="kv-row"><div class="kv-key">Troponin</div><div class="kv-val" style="color:var(--text-muted)">Not reported</div></div>
+        <div class="kv-row"><div class="kv-key">ECG</div><div class="kv-val" style="color:var(--text-muted)">Not reported</div></div>
+        <div class="kv-row"><div class="kv-key">Imaging</div><div class="kv-val" style="color:var(--text-muted)">Not reported</div></div>
+        <div class="kv-row"><div class="kv-key">Evidence</div><div class="kv-val">Compatible symptoms only (chest pain)</div></div>
+        <div class="kv-row"><div class="kv-key">Decision</div><div class="kv-val" style="color:var(--yellow)">EARLY EXIT &rarr; Skip Stages 3&ndash;5</div></div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-header" onclick="toggleStage(this)" style="opacity:0.4">
+        <div class="stage-num" style="background:var(--surface2)">3</div>
+        <div class="stage-name" style="color:var(--text-muted)">Clinical DDx</div>
+        <span class="status-skip">&mdash;</span>
+        <div class="stage-type">Skipped</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body"><div class="reasoning-text">Bypassed (Brighton L4 early exit)</div></div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-header" onclick="toggleStage(this)" style="opacity:0.4">
+        <div class="stage-num" style="background:var(--surface2)">4</div>
+        <div class="stage-name" style="color:var(--text-muted)">Auditor</div>
+        <span class="status-skip">&mdash;</span>
+        <div class="stage-type">Skipped</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body"><div class="reasoning-text">Bypassed (Brighton L4 early exit)</div></div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">5</div>
+        <div class="stage-name">Causality Classification</div>
+        <span class="status-fail">&#10007;</span>
+        <div class="stage-type">Code</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">WHO Category</div><div class="kv-val" style="color:var(--yellow);font-weight:700">Unclassifiable</div></div>
+        <div class="kv-row"><div class="kv-key">Path</div><div class="kv-val">Brighton L4 &rarr; Early Exit &rarr; Stage 6</div></div>
+      </div>
+    </div>
+
+    <div class="stage open">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">6</div>
+        <div class="stage-name">Investigation Guidance</div>
+        <span class="status-pass">&#10003;</span>
+        <div class="stage-type">LLM + Knowledge DB</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="reasoning-text">
+          Young male with post-vaccination chest pain diagnosed as myocarditis but lacks any objective cardiac testing. Basic troponin and ECG could rapidly upgrade this to Level 2&ndash;3 classification.
+        </div>
+        <div class="guidance-box">
+          <div class="guidance-title">Investigation Gaps</div>
+          <div class="test-item">
+            <div class="test-name"><span class="priority-critical">CRITICAL</span> &mdash; hs-Troponin I or T (serial measurements)</div>
+            <div class="test-rationale">Order serial measurements q6&ndash;8h. Essential for quantifying myocardial injury and Brighton criteria.</div>
+          </div>
+          <div class="test-item">
+            <div class="test-name"><span class="priority-critical">CRITICAL</span> &mdash; 12-lead ECG + telemetry</div>
+            <div class="test-rationale">Evaluate ST/T changes, conduction abnormalities, arrhythmia. Required for Brighton classification.</div>
+          </div>
+          <div class="test-item">
+            <div class="test-name"><span class="priority-high">HIGH</span> &mdash; Transthoracic Echocardiogram (TTE)</div>
+            <div class="test-rationale">Schedule for structural and functional assessment. Evaluate LVEF, wall motion, pericardial effusion.</div>
+          </div>
+        </div>
+        <div class="fastest-path-box">
+          <div class="fastest-path-title">Fastest Path to Classification</div>
+          <div class="fastest-path-text"><strong>Brighton Level 2</strong> &mdash; requires hs-troponin + 12-lead ECG + echocardiogram</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="meta-bar">
+      <div><span class="meta-label">Data Richness:</span><span class="meta-value">3/10</span></div>
+      <div><span class="meta-label">Risk:</span><span class="meta-value risk-medium">MEDIUM</span></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================= PAPER CASE B: A1 ======================= -->
+<div class="case-container" id="case-p-a1">
+<div class="split">
+  <div class="pane pane-left">
+    <div class="pane-title">VAERS Original Report</div>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-label">VAERS ID</div>
+        <div class="info-value">1549179</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Age / Sex</div>
+        <div class="info-value">14 / Male</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Vaccine</div>
+        <div class="info-value">BNT162b2 (Pfizer-BioNTech)</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Dose</div>
+        <div class="info-value">2nd dose</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Onset</div>
+        <div class="info-value">3 days post-vaccination</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">State</div>
+        <div class="info-value">Pennsylvania</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Symptoms</div>
+        <div class="info-value">Stabbing chest pain, Troponin elevated</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Condition</div>
+        <div class="info-value">Myocarditis</div>
+      </div>
+    </div>
+    <div class="narrative-label">Symptom Narrative</div>
+    <div class="narrative">
+      &ldquo;3 days after 2nd vaccine my son had stabbing chest pain. He was transported by ambulance from a local ER to hospital with high troponin levels. He was diagnosed with Myocarditis from the vaccine.&rdquo;
+    </div>
+    <div class="narrative-label">Medical History</div>
+    <div class="narrative">
+      <strong>History:</strong> Asthma<br>
+      <strong>Medications:</strong> Zyrtec
+    </div>
+  </div>
+  <div class="pane pane-right">
+    <div class="pane-title">Pipeline Output</div>
+    <div class="classification-banner banner-a1">
+      <div class="who-cat">WHO A1</div>
+      <div class="who-label">Consistent Causal Association to Immunization</div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">1</div>
+        <div class="stage-name">ICSR Extraction</div>
+        <span class="status-pass">&#10003;</span>
+        <div class="stage-type">LLM</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">Status</div><div class="kv-val" style="color:var(--green)">Complete demographics, Dose 2, onset 3d, troponin+, ambulance, hospitalization, myocarditis dx</div></div>
+        <div class="kv-row"><div class="kv-key">Condition</div><div class="kv-val">Myocarditis</div></div>
+        <div class="kv-row"><div class="kv-key">Onset days</div><div class="kv-val">3</div></div>
+        <div class="kv-row"><div class="kv-key">Troponin</div><div class="kv-val">Elevated (high troponin levels)</div></div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">2</div>
+        <div class="stage-name">Brighton Validation</div>
+        <span class="status-pass">&#10003;</span>
+        <div class="stage-type">Code</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">Brighton Level</div><div class="kv-val" style="color:var(--green);font-weight:700">Level 1</div></div>
+        <div class="kv-row"><div class="kv-key">CMR</div><div class="kv-val" style="color:var(--green)">Positive</div></div>
+        <div class="kv-row"><div class="kv-key">Troponin</div><div class="kv-val" style="color:var(--green)">Elevated</div></div>
+        <div class="kv-row"><div class="kv-key">ECG</div><div class="kv-val" style="color:var(--green)">Abnormal</div></div>
+        <div class="kv-row"><div class="kv-key">Echo</div><div class="kv-val" style="color:var(--green)">Abnormal</div></div>
+        <div class="kv-row"><div class="kv-key">Symptoms</div><div class="kv-val" style="color:var(--green)">Present (chest pain)</div></div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">3</div>
+        <div class="stage-name">Clinical DDx Assessment</div>
+        <span class="status-pass">&#10003;</span>
+        <div class="stage-type">LLM + Code</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">NCI Score</div><div class="kv-val"><strong>0.0</strong></div></div>
+        <div class="kv-row"><div class="kv-key">Dominant DDx</div><div class="kv-val">None &mdash; no alternative etiology identified</div></div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">4</div>
+        <div class="stage-name">Auditor</div>
+        <span class="status-pass">&#10003;</span>
+        <div class="stage-type">Code</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">Known AE</div><div class="kv-val" style="color:var(--green)">ESTABLISHED (mRNA + myocarditis)</div></div>
+        <div class="kv-row"><div class="kv-key">Temporal</div><div class="kv-val" style="color:var(--green)">STRONG_CAUSAL (3d, &le;7d window)</div></div>
+      </div>
+    </div>
+
+    <div class="stage open">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">5</div>
+        <div class="stage-name">Causality Classification</div>
+        <span class="status-pass">&#10003;</span>
+        <div class="stage-type">Code + LLM</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">WHO Category</div><div class="kv-val" style="color:var(--red);font-weight:700">A1 &mdash; Consistent Causal Association</div></div>
+        <div class="kv-row"><div class="kv-key">Decision path</div><div class="kv-val">Q1 &rarr; Q2 &rarr; Q3 &rarr; Q4 &rarr; Q5 &rarr; A1</div></div>
+        <div class="reasoning-text" style="margin-top:0.5rem">
+          14-year-old male developed Brighton Level 1 myocarditis 3 days after second Pfizer vaccine, meeting A1 classification criteria with strong temporal relationship. Missing viral testing data represents only minor gap.
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">6</div>
+        <div class="stage-name">Investigation Guidance</div>
+        <span class="status-pass">&#10003;</span>
+        <div class="stage-type">LLM + Knowledge DB</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="guidance-box">
+          <div class="guidance-title">Remaining Gaps</div>
+          <div class="test-item">
+            <div class="test-name"><span class="priority-medium">MEDIUM</span> &mdash; Viral testing (unknown)</div>
+            <div class="test-rationale">Obtain PCR/serology results if performed during hospitalization. Would strengthen A1 classification if negative.</div>
+          </div>
+          <div class="test-item">
+            <div class="test-name"><span class="priority-medium">MEDIUM</span> &mdash; Cardiac MRI details</div>
+            <div class="test-rationale">Request full CMR report to document LGE pattern (inferolateral subepicardial = vaccine signature).</div>
+          </div>
+          <div class="test-item">
+            <div class="test-name"><span class="priority-low">LOW</span> &mdash; CRP / ESR / BNP</div>
+            <div class="test-rationale">Obtain if available from hospital records for completeness.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="meta-bar">
+      <div><span class="meta-label">Data Richness:</span><span class="meta-value">7/10</span></div>
+      <div><span class="meta-label">Risk:</span><span class="meta-value risk-high">HIGH</span></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================= PAPER CASE C: B2 ======================= -->
+<div class="case-container" id="case-p-b2">
+<div class="split">
+  <div class="pane pane-left">
+    <div class="pane-title">VAERS Original Report</div>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-label">VAERS ID</div>
+        <div class="info-value">1430395</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Age / Sex</div>
+        <div class="info-value">14 / Male</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Vaccine</div>
+        <div class="info-value">BNT162b2 (Pfizer-BioNTech)</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Dose</div>
+        <div class="info-value">2nd dose</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Onset</div>
+        <div class="info-value">3 days post-vaccination</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Symptoms</div>
+        <div class="info-value">SOB, Chest pain, Troponin 2.1 ng/mL</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">ECG</div>
+        <div class="info-value">Inferior ST elevation</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Condition</div>
+        <div class="info-value">Myocarditis</div>
+      </div>
+    </div>
+    <div class="narrative-label">Symptom Narrative</div>
+    <div class="narrative">
+      Developed shortness of breath and chest pain 3 days after second dose. Troponin 2.1 ng/mL, ECG with inferior ST elevation. <strong>Had viral illness (cough, fatigue, diarrhea) between doses.</strong>
+    </div>
+    <div class="narrative-label">Medical History</div>
+    <div class="narrative">
+      <strong>Current illness:</strong> Viral illness between doses (cough, fatigue, diarrhea)<br>
+      <strong>Medications:</strong> Not reported
+    </div>
+  </div>
+  <div class="pane pane-right">
+    <div class="pane-title">Pipeline Output</div>
+    <div class="classification-banner banner-b2-paper">
+      <div class="who-cat">WHO B2</div>
+      <div class="who-label">Indeterminate &mdash; Temporal Relationship but Insufficient Evidence</div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">1</div>
+        <div class="stage-name">ICSR Extraction</div>
+        <span class="status-pass">&#10003;</span>
+        <div class="stage-type">LLM</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">Status</div><div class="kv-val" style="color:var(--green)">Demographics, Dose 2, onset 3d, troponin 2.1, ECG ST elevation, inter-dose viral illness</div></div>
+        <div class="kv-row"><div class="kv-key">Condition</div><div class="kv-val">Myocarditis</div></div>
+        <div class="kv-row"><div class="kv-key">Onset days</div><div class="kv-val">3</div></div>
+        <div class="kv-row"><div class="kv-key">Troponin</div><div class="kv-val">2.1 ng/mL (elevated)</div></div>
+        <div class="kv-row"><div class="kv-key">Confounder</div><div class="kv-val" style="color:var(--yellow)">Viral illness between vaccine doses</div></div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">2</div>
+        <div class="stage-name">Brighton Validation</div>
+        <span class="status-pass">&#10003;</span>
+        <div class="stage-type">Code</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">Brighton Level</div><div class="kv-val" style="color:var(--green);font-weight:700">Level 2</div></div>
+        <div class="kv-row"><div class="kv-key">Troponin</div><div class="kv-val" style="color:var(--green)">Elevated (2.1 ng/mL)</div></div>
+        <div class="kv-row"><div class="kv-key">ECG</div><div class="kv-val" style="color:var(--green)">Abnormal (inferior ST elevation)</div></div>
+        <div class="kv-row"><div class="kv-key">Symptoms</div><div class="kv-val" style="color:var(--green)">Present (SOB, chest pain)</div></div>
+        <div class="kv-row"><div class="kv-key">Imaging</div><div class="kv-val" style="color:var(--text-muted)">Not reported</div></div>
+      </div>
+    </div>
+
+    <div class="stage open">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">3</div>
+        <div class="stage-name">Clinical DDx Assessment</div>
+        <span class="status-warn">&#9888;</span>
+        <div class="stage-type">LLM + Code</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">NCI Score</div><div class="kv-val" style="color:var(--yellow);font-weight:700">0.4 (moderate)</div></div>
+        <div class="kv-row"><div class="kv-key">Dominant DDx</div><div class="kv-val">Viral myocarditis (infectious)</div></div>
+        <div class="kv-row"><div class="kv-key">Key evidence</div><div class="kv-val">Prodromal viral illness between vaccine doses (cough, fatigue, diarrhea)</div></div>
+        <div class="reasoning-text" style="margin-top:0.5rem">
+          The inter-dose viral illness creates diagnostic ambiguity. Symptoms (cough, fatigue, diarrhea) are consistent with a viral prodrome that could independently cause myocarditis. However, NCI 0.4 is below the &ldquo;definite alternative&rdquo; threshold &mdash; viral etiology is possible but not confirmed without testing.
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">4</div>
+        <div class="stage-name">Auditor</div>
+        <span class="status-pass">&#10003;</span>
+        <div class="stage-type">Code</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">Known AE</div><div class="kv-val" style="color:var(--green)">ESTABLISHED (mRNA + myocarditis)</div></div>
+        <div class="kv-row"><div class="kv-key">Temporal</div><div class="kv-val" style="color:var(--green)">STRONG_CAUSAL (3d, &le;7d window)</div></div>
+      </div>
+    </div>
+
+    <div class="stage open">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">5</div>
+        <div class="stage-name">Causality Classification</div>
+        <span class="status-warn">&#9888;</span>
+        <div class="stage-type">Code + LLM</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">WHO Category</div><div class="kv-val" style="color:var(--yellow);font-weight:700">B2 &mdash; Indeterminate</div></div>
+        <div class="kv-row"><div class="kv-key">Decision path</div><div class="kv-val">Q1 &rarr; Q2 &rarr; Q3 &rarr; Q4 &rarr; Q5 conflicting (NCI 0.4) &rarr; B2</div></div>
+        <div class="reasoning-text" style="margin-top:0.5rem">
+          Temporal association supports vaccine causation (3 days, strong causal window), but inter-dose viral illness creates diagnostic ambiguity. NCI 0.4 indicates moderate alternative etiology &mdash; not enough to rule out vaccine, not enough to confirm it. Targeted viral testing could resolve this classification.
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">6</div>
+        <div class="stage-name">Investigation Guidance</div>
+        <span class="status-pass">&#10003;</span>
+        <div class="stage-type">LLM + Knowledge DB</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="guidance-box">
+          <div class="guidance-title">Targeted Investigation Protocol</div>
+          <div class="test-item">
+            <div class="test-name"><span class="priority-high">HIGH</span> &mdash; Comprehensive viral panel (PCR + paired serology)</div>
+            <div class="test-rationale">Test for Coxsackie B, Parvovirus B19, HHV-6, Adenovirus, Enterovirus. Critical to resolve B2 ambiguity.</div>
+          </div>
+          <div class="test-item">
+            <div class="test-name"><span class="priority-high">HIGH</span> &mdash; Cardiac MRI with LGE pattern analysis</div>
+            <div class="test-rationale">Differentiate vaccine-induced (inferolateral subepicardial) from viral (diffuse patchy) myocarditis pattern.</div>
+          </div>
+          <div class="test-item">
+            <div class="test-name"><span class="priority-medium">MEDIUM</span> &mdash; Convalescent serology (paired titers at 2&ndash;4 weeks)</div>
+            <div class="test-rationale">Rising titers would confirm active viral infection as causative agent.</div>
+          </div>
+        </div>
+        <div class="fastest-path-box">
+          <div class="fastest-path-title">Fastest Path to Reclassification</div>
+          <div class="fastest-path-text">Viral PCR <strong>negative</strong> &rarr; reclassify <strong>B2 &rarr; A1</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="meta-bar">
+      <div><span class="meta-label">Data Richness:</span><span class="meta-value">6/10</span></div>
+      <div><span class="meta-label">Risk:</span><span class="meta-value risk-medium">MEDIUM</span></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ======================= PAPER CASE D: C ======================= -->
+<div class="case-container" id="case-p-c">
+<div class="split">
+  <div class="pane pane-left">
+    <div class="pane-title">VAERS Original Report</div>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-label">VAERS ID</div>
+        <div class="info-value">1263276</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Age / Sex</div>
+        <div class="info-value">29 / Male</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Vaccine</div>
+        <div class="info-value">BNT162b2 (Pfizer-BioNTech)</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Dose</div>
+        <div class="info-value">2nd dose</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Onset</div>
+        <div class="info-value" style="color:var(--red)">50 days post-vaccination</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Symptoms</div>
+        <div class="info-value">CHF, Non-sustained VT</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Cardiac MRI</div>
+        <div class="info-value" style="color:var(--green)">Positive for myocarditis</div>
+      </div>
+      <div class="info-card">
+        <div class="info-label">Condition</div>
+        <div class="info-value">Myocarditis</div>
+      </div>
+    </div>
+    <div class="narrative-label">Symptom Narrative</div>
+    <div class="narrative">
+      Admitted with <strong>congestive heart failure</strong>, <strong>myocarditis</strong>, and <strong>non-sustained ventricular tachycardia</strong> 50 days after second dose. Cardiac MRI positive for myocarditis. Troponin elevated.
+    </div>
+    <div class="narrative-label">Medical History</div>
+    <div class="narrative">
+      <strong>History:</strong> Not reported<br>
+      <strong>Medications:</strong> Not reported
+    </div>
+  </div>
+  <div class="pane pane-right">
+    <div class="pane-title">Pipeline Output</div>
+    <div class="classification-banner banner-c-paper">
+      <div class="who-cat">WHO C</div>
+      <div class="who-label">Coincidental &mdash; Alternative Etiology + Temporal Implausibility</div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">1</div>
+        <div class="stage-name">ICSR Extraction</div>
+        <span class="status-pass">&#10003;</span>
+        <div class="stage-type">LLM</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">Status</div><div class="kv-val" style="color:var(--green)">Demographics, Dose 2, 50-day onset, CHF, VT, CMR+, troponin elevated</div></div>
+        <div class="kv-row"><div class="kv-key">Condition</div><div class="kv-val">Myocarditis</div></div>
+        <div class="kv-row"><div class="kv-key">Onset days</div><div class="kv-val" style="color:var(--red)">50 (far outside typical window)</div></div>
+        <div class="kv-row"><div class="kv-key">Severity markers</div><div class="kv-val">CHF, non-sustained VT, CMR+, troponin elevated</div></div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">2</div>
+        <div class="stage-name">Brighton Validation</div>
+        <span class="status-pass">&#10003;</span>
+        <div class="stage-type">Code</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">Brighton Level</div><div class="kv-val" style="color:var(--green);font-weight:700">Level 1</div></div>
+        <div class="kv-row"><div class="kv-key">CMR</div><div class="kv-val" style="color:var(--green)">Positive</div></div>
+        <div class="kv-row"><div class="kv-key">Troponin</div><div class="kv-val" style="color:var(--green)">Elevated</div></div>
+        <div class="kv-row"><div class="kv-key">Symptoms</div><div class="kv-val" style="color:var(--green)">Present (CHF, VT)</div></div>
+      </div>
+    </div>
+
+    <div class="stage open">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">3</div>
+        <div class="stage-name">Clinical DDx Assessment</div>
+        <span class="status-fail">&#10007;</span>
+        <div class="stage-type">LLM + Code</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">NCI Score</div><div class="kv-val" style="color:var(--red);font-weight:700">1.0 (definite alternative)</div></div>
+        <div class="kv-row"><div class="kv-key">Dominant DDx</div><div class="kv-val" style="color:var(--red)">Giant cell myocarditis</div></div>
+        <div class="reasoning-text" style="margin-top:0.5rem">
+          Severe presentation with CHF and non-sustained VT is <strong>atypical for vaccine-associated myocarditis</strong> (which typically presents with chest pain and mild troponin elevation, not heart failure or arrhythmias). This pattern is highly characteristic of giant cell myocarditis (GCM). NCI = 1.0 indicates definite alternative etiology.
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">4</div>
+        <div class="stage-name">Auditor</div>
+        <span class="status-fail">&#10007;</span>
+        <div class="stage-type">Code</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">Known AE</div><div class="kv-val" style="color:var(--green)">ESTABLISHED (mRNA + myocarditis)</div></div>
+        <div class="kv-row"><div class="kv-key">Temporal</div><div class="kv-val" style="color:var(--red);font-weight:700">UNLIKELY (50 days, &gt;42d threshold)</div></div>
+        <div class="reasoning-text" style="margin-top:0.5rem">
+          Known AE is established, but 50-day onset far exceeds the 42-day maximum window for vaccine-associated myocarditis. Two independent drivers point to coincidental: definite alternative etiology AND temporal implausibility.
+        </div>
+      </div>
+    </div>
+
+    <div class="stage open">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">5</div>
+        <div class="stage-name">Causality Classification</div>
+        <span class="status-pass">&#10003;</span>
+        <div class="stage-type">Code + LLM</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="kv-row"><div class="kv-key">WHO Category</div><div class="kv-val" style="color:var(--accent);font-weight:700">C &mdash; Coincidental</div></div>
+        <div class="kv-row"><div class="kv-key">Decision path</div><div class="kv-val">Q1 &rarr; Q2 definite alt (NCI 1.0) &rarr; C</div></div>
+        <div class="reasoning-text" style="margin-top:0.5rem">
+          Severe presentation with CHF and VT 50 days post-vaccination strongly suggests giant cell myocarditis rather than vaccine-associated myocarditis. <strong>URGENT escalation &mdash; GCM carries &gt;70% mortality without immunosuppression.</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage open">
+      <div class="stage-header" onclick="toggleStage(this)">
+        <div class="stage-num">6</div>
+        <div class="stage-name">Investigation Guidance</div>
+        <span class="status-pass">&#10003;</span>
+        <div class="stage-type">LLM + Knowledge DB</div>
+        <div class="stage-arrow">&#9654;</div>
+      </div>
+      <div class="stage-body">
+        <div class="guidance-box" style="border-color:var(--red); background:rgba(248,113,113,0.05);">
+          <div class="guidance-title" style="color:var(--red)">URGENT: Giant Cell Myocarditis Workup</div>
+          <div class="test-item">
+            <div class="test-name"><span class="priority-critical">CRITICAL</span> &mdash; Endomyocardial Biopsy (EMB)</div>
+            <div class="test-rationale">Gold standard for GCM diagnosis. &gt;70% mortality without immunosuppression. Look for: multinucleated giant cells + lymphocytic infiltrate + myocyte necrosis.</div>
+          </div>
+          <div class="test-item">
+            <div class="test-name"><span class="priority-high">HIGH</span> &mdash; Verify symptom onset date</div>
+            <div class="test-rationale">50-day onset is atypical for any vaccine association. Contact reporter to confirm exact timeline and rule out data entry error.</div>
+          </div>
+          <div class="test-item">
+            <div class="test-name"><span class="priority-medium">MEDIUM</span> &mdash; Autoimmune panel</div>
+            <div class="test-rationale">ANA, anti-heart antibodies, complement levels. GCM is associated with autoimmune conditions.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="meta-bar">
+      <div><span class="meta-label">Data Richness:</span><span class="meta-value">7/10</span></div>
+      <div><span class="meta-label">Risk:</span><span class="meta-value risk-low">LOW</span></div>
+    </div>
+  </div>
+</div>
+</div>
+
 <footer>
   Vax-Beacon v4.3 &middot; Neuro-Symbolic AEFI Causality Assessment Pipeline &middot;
   <a href="https://github.com/SuahCheon/vax-beacon-jmir">Source Code</a> &middot;
@@ -1065,9 +1863,24 @@ EKG: ST segment depression in III, aVF, V4, V5
 </footer>
 
 <script>
+function showGroup(group) {
+  document.querySelectorAll('.group-btn').forEach(function(b) { b.classList.remove('active'); });
+  event.currentTarget.classList.add('active');
+
+  document.getElementById('tabs-pipeline').style.display = group === 'pipeline' ? 'flex' : 'none';
+  document.getElementById('tabs-paper').style.display = group === 'paper' ? 'flex' : 'none';
+
+  var firstCase = group === 'pipeline' ? 'l4' : 'p-l4';
+  document.querySelectorAll('.case-container').forEach(function(c) { c.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('case-' + firstCase).classList.add('active');
+  var bar = document.getElementById('tabs-' + group);
+  bar.querySelector('.tab-btn').classList.add('active');
+}
+
 function showCase(id) {
-  document.querySelectorAll('.case-container').forEach(c => c.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.case-container').forEach(function(c) { c.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
   document.getElementById('case-' + id).classList.add('active');
   event.currentTarget.classList.add('active');
 }
