@@ -1,0 +1,370 @@
+{
+  "version": "4.3",
+  "subtypes": {
+    "viral_etiology": {
+      "label": "Viral myocarditis (infectious)",
+      "pathophysiology": "Direct viral cardiotropism (e.g., enterovirus, parvovirus B19, HHV-6) causes myocyte lysis and secondary immune-mediated inflammation. Lymphocytic infiltration is the hallmark histological finding. Prodromal febrile illness with respiratory or gastrointestinal symptoms typically precedes cardiac involvement by days to weeks.",
+      "clinical_features": {
+        "primary_indicators": [
+          {
+            "finding": "positive_viral_pcr",
+            "description": "Confirmed positive viral test result (PCR, antigen, or culture) from blood, respiratory, stool, or myocardial tissue",
+            "extraction_keywords": ["viral pcr", "pcr positive", "viral culture", "antigen positive", "enterovirus", "parvovirus", "adenovirus", "coxsackie", "HHV-6", "CMV positive", "EBV positive", "virus detected", "viral test positive", "influenza positive", "RSV positive"],
+            "negative_keywords": ["pcr negative", "viral testing not done", "not tested", "no viral testing", "suspected viral", "possible viral", "covid", "SARS-CoV-2", "coronavirus"],
+            "differentiation_guide": "TRUE only for confirmed positive test result. 'Suspected viral etiology' without test confirmation = FALSE. 'Viral testing not performed' = FALSE. COVID-19 positive results are categorized under covid19_related, not here.",
+            "weight": 0.8
+          },
+          {
+            "finding": "lymphocytosis",
+            "description": "Laboratory-confirmed elevation of lymphocyte count above normal reference range",
+            "extraction_keywords": ["lymphocytosis", "elevated lymphocytes", "lymphocyte count elevated", "high lymphocyte", "lymphocyte predominant"],
+            "negative_keywords": ["normal lymphocytes", "lymphocyte count normal", "lymphopenia", "no lymphocytosis"],
+            "differentiation_guide": "TRUE only when laboratory results explicitly confirm actual lymphocyte elevation above normal range. General 'white blood cell elevation' without lymphocyte specification = FALSE. Neutrophilia alone is not lymphocytosis.",
+            "weight": 0.15
+          }
+        ],
+        "supporting_indicators": [
+          {
+            "finding": "fever_reported",
+            "description": "Fever or pyrexia documented at or around the time of cardiac symptom onset, suggesting an active infectious or inflammatory process",
+            "extraction_keywords": ["fever", "pyrexia", "febrile", "temperature elevated", "temp 38", "temp 39", "temp 40", "temp 101", "temp 102", "temp 103", "temp 104", "chills"],
+            "negative_keywords": ["afebrile", "no fever", "temperature normal"],
+            "differentiation_guide": "Fever concurrent with cardiac symptoms suggests infectious prodrome. Post-vaccine low-grade fever within 48 hours is common reactogenicity and should be distinguished from febrile illness indicating infection. True prodromal fever typically precedes cardiac symptoms by days.",
+            "weight": 0.2
+          },
+          {
+            "finding": "uri_symptoms",
+            "description": "Upper respiratory infection symptoms (cough, rhinorrhea, sore throat, nasal congestion) preceding or concurrent with cardiac onset",
+            "extraction_keywords": ["cough", "rhinorrhea", "sore throat", "pharyngitis", "nasal congestion", "runny nose", "upper respiratory", "URI", "cold symptoms", "respiratory infection", "sinusitis"],
+            "negative_keywords": ["no respiratory symptoms", "no cough", "no URI"],
+            "differentiation_guide": "URI symptoms preceding myocarditis by days to 2 weeks support viral prodrome. Isolated cough after intubation or in heart failure context is not a viral prodrome indicator.",
+            "weight": 0.2
+          },
+          {
+            "finding": "gi_symptoms",
+            "description": "Gastrointestinal symptoms (diarrhea, vomiting, abdominal pain) suggesting viral prodrome",
+            "extraction_keywords": ["diarrhea", "vomiting", "nausea", "abdominal pain", "gastroenteritis", "GI symptoms", "emesis", "loose stools"],
+            "negative_keywords": ["no GI symptoms", "no nausea", "no vomiting", "no diarrhea"],
+            "differentiation_guide": "GI symptoms as part of a viral prodrome typically precede cardiac symptoms. Post-vaccine nausea within 24-48 hours is reactogenicity, not viral prodrome. Enteroviral myocarditis often has prominent GI prodrome.",
+            "weight": 0.2
+          },
+          {
+            "finding": "myalgia_arthralgia",
+            "description": "Muscle or joint pain as a PRODROMAL symptom preceding cardiac onset, not post-vaccine reactogenicity",
+            "extraction_keywords": ["myalgia", "arthralgia", "muscle pain", "joint pain", "body aches", "muscle aches"],
+            "negative_keywords": ["injection site pain", "arm pain", "no myalgia", "no arthralgia"],
+            "differentiation_guide": "TRUE only if PRODROMAL — muscle/joint pain that preceded cardiac symptoms by days as part of a febrile illness. Post-vaccine myalgia within 24-48 hours at or near the injection site is expected reactogenicity and is NOT this marker. Look for systemic myalgia with fever preceding cardiac onset.",
+            "weight": 0.15
+          }
+        ],
+        "confirmatory": []
+      },
+      "high_suspicion_criteria": "Febrile prodromal illness (fever + URI or GI symptoms) preceding cardiac onset by 3-14 days, especially with confirmed positive viral PCR or lymphocytosis. Strongest when multiple prodromal markers co-occur."
+    },
+
+    "giant_cell_myocarditis": {
+      "label": "Giant cell myocarditis",
+      "pathophysiology": "Autoimmune-mediated myocardial destruction characterized by multinucleated giant cells and lymphocytic infiltration without granuloma formation. Rapidly progressive with fulminant heart failure, ventricular arrhythmias, and high-degree AV block. Carries >70% mortality without immunosuppression. Often associated with other autoimmune conditions.",
+      "clinical_features": {
+        "primary_indicators": [
+          {
+            "finding": "rapid_heart_failure",
+            "description": "Rapidly progressive heart failure with deteriorating ventricular function over days to weeks, often refractory to standard therapy",
+            "extraction_keywords": ["heart failure", "rapid heart failure", "progressive heart failure", "fulminant", "cardiomyopathy", "EF decreased", "ejection fraction", "reduced EF", "systolic dysfunction", "ventricular dysfunction", "LVEF", "decompensated", "refractory heart failure"],
+            "negative_keywords": ["chronic heart failure", "stable heart failure", "EF recovered", "EF normalized", "improved EF"],
+            "differentiation_guide": "GCM heart failure progresses rapidly over days to weeks and is typically REFRACTORY to standard heart failure therapy (ACE inhibitors, beta-blockers, diuretics). Vaccine-induced myocarditis heart failure is typically MILD and SELF-LIMITED with EF recovery within days to weeks. Key differentiator: Does the patient show EF recovery or continued deterioration? Recovery suggests vaccine-induced; progressive decline despite therapy suggests GCM.",
+            "weight": 0.6
+          },
+          {
+            "finding": "high_degree_av_block",
+            "description": "High-degree atrioventricular block (second-degree type II/Mobitz II, third-degree/complete heart block) — NOT minor conduction delays",
+            "extraction_keywords": ["second degree block type II", "second degree block type 2", "Mobitz II", "Mobitz type II", "third degree block", "complete heart block", "complete AV block", "high degree AV block", "high-grade AV block", "AV dissociation"],
+            "negative_keywords": ["no conduction abnormality", "normal conduction", "normal PR interval", "first degree block", "first degree AV block", "Wenckebach", "Mobitz I", "Mobitz type I", "incomplete bundle branch block", "incomplete RBBB", "incomplete LBBB", "PR prolongation only", "sinus arrhythmia"],
+            "differentiation_guide": "SEVERITY IS CRITICAL FOR THIS MARKER. Only HIGH-DEGREE AV block (second-degree type II or third-degree/complete) is suggestive of GCM. The following are NOT high-degree AV block and must be scored as FALSE: first-degree AV block (PR prolongation only), second-degree type I (Wenckebach/Mobitz I), incomplete bundle branch block (incomplete RBBB or incomplete LBBB), isolated right or left axis deviation. Vaccine-induced myocarditis can cause mild conduction delays (incomplete BBB, first-degree AV block) as part of acute myocardial inflammation — these are expected sequelae of any myocarditis and do NOT suggest GCM.",
+            "weight": 0.5
+          },
+          {
+            "finding": "ventricular_arrhythmia",
+            "description": "Ventricular tachycardia (VT) or ventricular fibrillation (VF)",
+            "extraction_keywords": ["ventricular tachycardia", "VT", "ventricular fibrillation", "VF", "V-tach", "V-fib", "cardiac arrest", "sudden cardiac arrest", "sustained VT", "nonsustained VT", "NSVT", "polymorphic VT", "monomorphic VT", "torsades"],
+            "negative_keywords": ["no arrhythmia", "sinus rhythm", "sinus tachycardia", "SVT", "atrial fibrillation", "atrial flutter", "supraventricular"],
+            "differentiation_guide": "New-onset sustained VT or VF in acute myocarditis is a hallmark of GCM. Polymorphic VT or sustained monomorphic VT is particularly concerning. Vaccine-induced myocarditis typically presents with sinus tachycardia or brief SVT, not VT/VF. NOTE: Sinus tachycardia and supraventricular tachycardia are NOT ventricular arrhythmias.",
+            "weight": 0.5
+          },
+          {
+            "finding": "cardiogenic_shock",
+            "description": "Hemodynamic collapse requiring vasopressors, inotropes, or mechanical circulatory support",
+            "extraction_keywords": ["cardiogenic shock", "shock", "hemodynamic collapse", "vasopressors", "inotropes", "ECMO", "mechanical support", "IABP", "Impella", "pressors", "norepinephrine", "dobutamine", "milrinone", "hemodynamic instability", "hypotension refractory"],
+            "negative_keywords": ["hemodynamically stable", "no shock", "stable hemodynamics"],
+            "differentiation_guide": "Cardiogenic shock requiring mechanical support is characteristic of fulminant GCM. Vaccine-induced myocarditis very rarely progresses to cardiogenic shock; when it does, recovery is typically rapid with supportive care.",
+            "weight": 0.4
+          }
+        ],
+        "supporting_indicators": [],
+        "confirmatory": [
+          {
+            "finding": "giant_cells_on_biopsy",
+            "description": "Multinucleated giant cells identified on endomyocardial biopsy, the gold standard for GCM diagnosis",
+            "extraction_keywords": ["giant cells", "multinucleated giant cells", "giant cell myocarditis", "GCM on biopsy", "biopsy confirmed GCM", "endomyocardial biopsy"],
+            "negative_keywords": ["no giant cells", "biopsy negative", "biopsy not performed", "lymphocytic only"],
+            "differentiation_guide": "Presence of multinucleated giant cells on EMB is pathognomonic for GCM. This is the definitive diagnostic marker. If biopsy was not performed, this marker cannot be positive.",
+            "weight": 1.0
+          }
+        ]
+      },
+      "high_suspicion_criteria": "New-onset VT/VF or high-degree AV block (second-degree type II or complete) combined with rapidly progressive heart failure refractory to standard therapy, especially in patients with known autoimmune conditions. Any two of (rapid_heart_failure, ventricular_arrhythmia, high_degree_av_block) co-occurring raises strong GCM suspicion. NOTE: Incomplete bundle branch block or first-degree AV block alone does NOT raise GCM suspicion — these can occur in any myocarditis including vaccine-induced."
+    },
+
+    "eosinophilic_myocarditis": {
+      "label": "Eosinophilic myocarditis",
+      "pathophysiology": "Eosinophilic infiltration of the myocardium, often triggered by drug hypersensitivity reactions (most common), parasitic infections, or hypereosinophilic syndromes. Eosinophil granule proteins (major basic protein, eosinophil cationic protein) directly damage cardiomyocytes. Can range from mild to fulminant presentation.",
+      "clinical_features": {
+        "primary_indicators": [
+          {
+            "finding": "peripheral_eosinophilia",
+            "description": "Elevated peripheral blood eosinophil count above normal reference range",
+            "extraction_keywords": ["eosinophilia", "elevated eosinophils", "eosinophil count elevated", "high eosinophils", "eosinophil count", "hypereosinophilia"],
+            "negative_keywords": ["normal eosinophils", "no eosinophilia", "eosinophils normal"],
+            "differentiation_guide": "Peripheral eosinophilia in the setting of myocarditis suggests eosinophilic etiology, but eosinophilia ALONE does not confirm eosinophilic myocarditis. It requires clinical context: new medication, parasitic exposure, or hypereosinophilic syndrome. Vaccine-induced myocarditis is not associated with peripheral eosinophilia, so its presence raises suspicion of alternative etiology. For plausibility scoring: eosinophilia + new medication or known trigger = high; eosinophilia alone without identifiable trigger = moderate; mild eosinophilia in context of systemic illness = low.",
+            "weight": 0.5
+          },
+          {
+            "finding": "new_medication_history",
+            "description": "New medication started recently that is known to cause hypersensitivity myocarditis",
+            "extraction_keywords": ["new medication", "recently started", "new drug", "new prescription", "started taking", "began medication", "medication change", "drug reaction", "sulfonamide", "penicillin", "clozapine", "methyldopa"],
+            "negative_keywords": ["no new medications", "chronic medications only", "stable medications"],
+            "differentiation_guide": "Focus on medications started within 2-4 weeks of symptom onset that are known hypersensitivity triggers. Chronic medications taken for months/years are less likely triggers. The vaccine itself is not counted as a 'new medication' for this marker.",
+            "weight": 0.3
+          }
+        ],
+        "supporting_indicators": [
+          {
+            "finding": "hypersensitivity_rash",
+            "description": "Allergic skin manifestations (urticaria, maculopapular rash, drug rash) concurrent with cardiac symptoms",
+            "extraction_keywords": ["rash", "urticaria", "hives", "skin reaction", "allergic reaction", "hypersensitivity", "drug rash", "maculopapular", "erythema", "pruritus", "angioedema"],
+            "negative_keywords": ["no rash", "no skin findings", "injection site redness only"],
+            "differentiation_guide": "Systemic rash (not limited to injection site) concurrent with myocarditis symptoms suggests drug hypersensitivity. Injection site local redness or mild erythema is vaccine reactogenicity, not this marker.",
+            "weight": 0.2
+          }
+        ],
+        "confirmatory": [
+          {
+            "finding": "eosinophils_on_biopsy",
+            "description": "Eosinophilic infiltrate identified on endomyocardial biopsy",
+            "extraction_keywords": ["eosinophils on biopsy", "eosinophilic infiltrate", "eosinophilic myocarditis on biopsy", "biopsy eosinophils", "endomyocardial biopsy eosinophils"],
+            "negative_keywords": ["no eosinophils on biopsy", "biopsy not performed", "lymphocytic infiltrate only"],
+            "differentiation_guide": "Eosinophilic infiltrate on EMB is definitive for eosinophilic myocarditis and clearly distinguishes from vaccine-induced lymphocytic myocarditis. TRUE only if biopsy was performed AND eosinophilic infiltrate was identified. If biopsy was not performed, this marker cannot be positive. If biopsy showed lymphocytic infiltrate without eosinophils, this marker is FALSE.",
+            "weight": 1.0
+          }
+        ]
+      },
+      "high_suspicion_criteria": "Peripheral eosinophilia combined with recent new medication exposure, especially if accompanied by systemic hypersensitivity features (rash, drug fever). Strongest when eosinophilia is documented in blood work concurrent with myocarditis presentation."
+    },
+
+    "toxin_ici_myocarditis": {
+      "label": "Toxin/ICI-induced myocarditis",
+      "pathophysiology": "Immune checkpoint inhibitors (anti-PD-1, anti-PD-L1, anti-CTLA-4) unleash T-cell-mediated autoimmune attack on cardiomyocytes. ICI myocarditis typically occurs within 1-3 months of therapy initiation and can be rapidly fatal. Other cardiotoxins (anthracyclines, tyrosine kinase inhibitors) cause direct myocyte damage through different mechanisms.",
+      "clinical_features": {
+        "primary_indicators": [
+          {
+            "finding": "ici_therapy_active",
+            "description": "Patient currently receiving or recently received immune checkpoint inhibitor therapy",
+            "extraction_keywords": ["checkpoint inhibitor", "ICI", "immunotherapy", "nivolumab", "pembrolizumab", "ipilimumab", "atezolizumab", "durvalumab", "avelumab", "anti-PD-1", "anti-PD-L1", "anti-CTLA-4", "opdivo", "keytruda", "yervoy"],
+            "negative_keywords": ["no immunotherapy", "no ICI", "not on checkpoint inhibitor"],
+            "differentiation_guide": "Active ICI therapy is a strong predictor of ICI myocarditis, especially within the first 1-3 months of treatment. ICI myocarditis has high mortality (up to 50%) and requires urgent immunosuppression. Distinguish from vaccine-induced by the presence of concurrent ICI treatment.",
+            "weight": 0.8
+          },
+          {
+            "finding": "concurrent_myositis",
+            "description": "Concurrent skeletal myositis (muscle inflammation) co-occurring with myocarditis",
+            "extraction_keywords": ["myositis", "muscle inflammation", "skeletal myopathy", "muscle weakness", "rhabdomyolysis", "CK elevation with weakness"],
+            "negative_keywords": ["no myositis", "no muscle involvement", "normal CK"],
+            "differentiation_guide": "Concurrent myositis with myocarditis is highly characteristic of ICI-related toxicity (overlap myocarditis-myositis syndrome). Vaccine-induced myocarditis does not cause concurrent skeletal myositis.",
+            "weight": 0.5
+          },
+          {
+            "finding": "conduction_delay",
+            "description": "Significant conduction abnormality (complete BBB, high-degree AV block, QRS widening >120ms) occurring in a patient with confirmed ICI or cardiotoxin exposure",
+            "extraction_keywords": ["conduction delay", "QRS widening", "complete bundle branch block", "complete RBBB", "complete LBBB", "new LBBB", "new RBBB", "interventricular delay", "intraventricular conduction delay", "high degree block"],
+            "negative_keywords": ["normal conduction", "no conduction delay", "incomplete bundle branch block", "incomplete RBBB", "incomplete LBBB", "PR prolongation only", "first degree AV block", "sinus arrhythmia"],
+            "differentiation_guide": "This marker has TWO MANDATORY requirements — BOTH must be met for plausibility above 'none': (1) SEVERITY: The conduction abnormality must be SIGNIFICANT — complete BBB, new high-degree AV block, or QRS widening >120ms. Incomplete bundle branch block, first-degree AV block, and PR prolongation alone are MILD findings that can occur as sequelae of ANY myocarditis (including vaccine-induced) and do NOT suggest ICI/toxin etiology. (2) CONTEXT: The patient must have documented ICI therapy or known cardiotoxin exposure. Without ICI/toxin exposure, even significant conduction delay should be scored plausibility='none' for this etiology because the pathophysiological mechanism (ICI-unleashed T-cell autoimmune attack on conduction system) requires the causative agent to be present. Conduction delay in a patient WITHOUT ICI/toxin exposure but WITH vaccine-induced myocarditis is best explained as inflammatory involvement of the conduction system by the vaccine-induced process itself.",
+            "weight": 0.4
+          }
+        ],
+        "supporting_indicators": [
+          {
+            "finding": "new_chemotherapy",
+            "description": "Recent cardiotoxic chemotherapy (e.g., anthracyclines, tyrosine kinase inhibitors) within 6 months",
+            "extraction_keywords": ["chemotherapy", "anthracycline", "doxorubicin", "adriamycin", "epirubicin", "tyrosine kinase inhibitor", "TKI", "trastuzumab", "herceptin", "cyclophosphamide", "5-FU", "fluorouracil"],
+            "negative_keywords": ["no chemotherapy", "chemotherapy completed years ago", "remote chemotherapy"],
+            "differentiation_guide": "Only recent cardiotoxic chemotherapy (within 6 months) is relevant. Remote chemotherapy (>1 year ago) follows a chronic cardiotoxicity pathway and is not concordant with acute myocarditis. Anthracycline cardiotoxicity is typically dose-dependent and cumulative.",
+            "weight": 0.4
+          },
+          {
+            "finding": "elevated_ck",
+            "description": "Creatine kinase (CK) elevation suggesting concurrent skeletal muscle involvement",
+            "extraction_keywords": ["CK elevated", "creatine kinase elevated", "CK high", "elevated CK", "CPK elevated", "creatine phosphokinase"],
+            "negative_keywords": ["CK normal", "normal CK", "CPK normal"],
+            "differentiation_guide": "Elevated CK in the setting of myocarditis suggests concurrent skeletal muscle involvement (myositis), which is characteristic of ICI-related toxicity. Isolated troponin elevation without CK elevation is more typical of vaccine-induced myocarditis.",
+            "weight": 0.3
+          }
+        ],
+        "confirmatory": []
+      },
+      "high_suspicion_criteria": "Active ICI therapy combined with concurrent myositis (elevated CK + muscle weakness) and new conduction abnormalities. ICI myocarditis-myositis overlap syndrome is nearly pathognomonic for ICI toxicity."
+    },
+
+    "ischemic_heart_disease": {
+      "label": "Ischemic heart disease (CAD/MI)",
+      "pathophysiology": "Coronary artery disease causes myocardial ischemia through atherosclerotic plaque rupture, thrombosis, or fixed stenosis. Acute MI can mimic myocarditis on presentation with chest pain and troponin elevation. Key differentiator is focal/territorial distribution of ECG changes and coronary obstruction on angiography.",
+      "clinical_features": {
+        "primary_indicators": [
+          {
+            "finding": "prior_cad_history",
+            "description": "Known history of coronary artery disease, prior myocardial infarction, or prior coronary intervention",
+            "extraction_keywords": ["coronary artery disease", "CAD", "prior MI", "myocardial infarction", "coronary stent", "CABG", "bypass surgery", "angina", "coronary heart disease", "ischemic heart disease", "coronary intervention", "PCI", "angioplasty"],
+            "negative_keywords": ["no CAD", "no coronary disease", "no prior MI", "coronary arteries normal", "SCAD"],
+            "differentiation_guide": "Prior CAD HISTORY raises suspicion of ischemic etiology but does NOT confirm that the current event is ischemic. Patients with CAD can also develop vaccine-induced myocarditis. CAD history alone warrants further investigation (catheterization) but is NOT sufficient for definitive alternative cause classification. For plausibility scoring: CAD history + focal ST changes or positive catheterization = high; CAD history + chest pain but no catheterization performed = moderate; CAD history alone without supporting ischemic evidence = low. Catheterization (positive_catheterization, w=1.0) is the definitive marker for ischemic etiology.",
+            "weight": 0.5
+          },
+          {
+            "finding": "focal_st_changes",
+            "description": "Truly focal or territorial ST segment changes on ECG suggesting ischemic origin in a single coronary territory",
+            "extraction_keywords": ["ST elevation", "ST depression", "ST changes", "STEMI", "ST segment", "ECG changes", "EKG changes", "inferior ST", "anterior ST", "lateral ST"],
+            "negative_keywords": ["diffuse ST", "widespread ST", "global ST", "normal ECG", "no ST changes", "sinus rhythm normal", "early repolarization", "benign variant"],
+            "differentiation_guide": "TRUE only if ST changes are in a SINGLE CORONARY TERRITORY: inferior only (II, III, aVF = RCA), anterior only (V1-V4 = LAD), lateral only (I, aVL, V5-V6 = LCx). FALSE if: diffuse ST elevation across multiple territories, contiguous precordial (V2-V5 or V1-V6 = typical myocarditis), 'widespread' or 'global' or 'diffuse' description, concave-up ST elevation (pericarditis/myocarditis pattern), or ST changes without specific lead distribution. In myocarditis, most ST changes are inflammatory (diffuse), NOT ischemic (focal).",
+            "weight": 0.5
+          }
+        ],
+        "supporting_indicators": [
+          {
+            "finding": "age_over_50",
+            "description": "Patient age over 50 years — a RISK FACTOR for ischemic heart disease, not a cause of acute myocarditis",
+            "extraction_keywords": ["50 year", "51 year", "52 year", "53 year", "54 year", "55 year", "56 year", "57 year", "58 year", "59 year", "60 year", "61 year", "62 year", "63 year", "64 year", "65 year", "66 year", "67 year", "68 year", "69 year", "70 year", "71 year", "72 year", "73 year", "74 year", "75 year", "76 year", "77 year", "78 year", "79 year", "80 year", "81 year", "82 year", "83 year", "84 year", "85 year", "86 year", "87 year", "88 year", "89 year", "90 year", "elderly", "older adult"],
+            "negative_keywords": ["young", "pediatric", "adolescent", "teenager"],
+            "differentiation_guide": "Age >50 is a risk factor for CAD but does NOT by itself indicate ischemic etiology. Weight is 0.0 — recorded for audit trail but does not contribute to NCI score. Many older patients develop vaccine-induced myocarditis.",
+            "weight": 0.0
+          },
+          {
+            "finding": "diabetes_hypertension",
+            "description": "Diabetes mellitus or hypertension documented — CAD risk factors, not causes of acute myocarditis",
+            "extraction_keywords": ["diabetes", "diabetic", "DM", "type 2 diabetes", "type 1 diabetes", "hypertension", "HTN", "high blood pressure", "HbA1c elevated"],
+            "negative_keywords": ["no diabetes", "no hypertension", "normotensive"],
+            "differentiation_guide": "Risk factor only. Weight is 0.0 — recorded but does not contribute to NCI score. Presence of diabetes or hypertension increases CAD risk but does not prove ischemic etiology for the current event.",
+            "weight": 0.0
+          },
+          {
+            "finding": "smoking_history",
+            "description": "History of tobacco smoking — CAD risk factor, not a cause of acute myocarditis",
+            "extraction_keywords": ["smoking", "smoker", "tobacco", "cigarette", "pack-year", "nicotine"],
+            "negative_keywords": ["non-smoker", "never smoked", "no smoking history"],
+            "differentiation_guide": "Risk factor only. Weight is 0.0 — recorded but does not contribute to NCI score.",
+            "weight": 0.0
+          }
+        ],
+        "confirmatory": [
+          {
+            "finding": "positive_catheterization",
+            "description": "Cardiac catheterization demonstrating significant coronary artery obstruction or non-atherosclerotic coronary compromise (e.g., SCAD)",
+            "extraction_keywords": ["catheterization positive", "coronary obstruction", "stenosis", "coronary occlusion", "coronary angiography positive", "catheterization showed", "coronary blockage", "cath showed", "angiogram showed stenosis", "70% stenosis", "90% stenosis", "total occlusion", "SCAD", "spontaneous coronary artery dissection", "coronary dissection", "dissection flap", "intramural hematoma", "dual lumen"],
+            "negative_keywords": ["catheterization normal", "coronary arteries normal", "no stenosis", "no obstruction", "clean coronaries", "cath negative", "angiogram normal"],
+            "differentiation_guide": "Positive catheterization with significant coronary stenosis or occlusion is definitive for ischemic etiology. Normal coronary arteries on catheterization effectively rules out acute MI as the cause. SCAD (Spontaneous Coronary Artery Dissection) is pathophysiologically DISTINCT from atherosclerotic CAD — it involves non-atherosclerotic arterial wall separation (intimal tear or intramural hematoma) rather than plaque rupture. However, SCAD causes coronary flow compromise leading to myocardial injury and should be evaluated as an alternative cause of acute cardiac presentation. A causal relationship between mRNA vaccination and SCAD is NOT established (case reports only, no epidemiological evidence). Angiographic features include dissection flap, intramural hematoma, or dual-lumen appearance.",
+            "weight": 1.0
+          }
+        ]
+      },
+      "high_suspicion_criteria": "Prior CAD history with focal/territorial ST changes, especially in patients >50 with cardiovascular risk factors. Definitive when catheterization shows coronary obstruction. Always consider ischemic etiology in older patients with acute chest pain and troponin elevation."
+    },
+
+    "covid19_related": {
+      "label": "COVID-19 related myocarditis",
+      "pathophysiology": "SARS-CoV-2 causes myocardial injury through direct viral invasion via ACE2 receptors, cytokine storm-mediated inflammation, and microvascular thrombosis. COVID-19 myocarditis can occur during acute infection or as a delayed post-infectious complication. MIS-C (pediatric) and MIS-A (adult) are distinct hyperinflammatory syndromes following COVID-19 that frequently involve the heart.",
+      "clinical_features": {
+        "primary_indicators": [
+          {
+            "finding": "active_covid19",
+            "description": "Laboratory-confirmed SARS-CoV-2 infection (PCR, antigen, or nucleocapsid antibody) with temporal plausibility for causing the current myocarditis",
+            "extraction_keywords": ["COVID-19 positive", "SARS-CoV-2 positive", "COVID positive", "COVID confirmed", "COVID test positive", "active COVID", "diagnosed with COVID", "COVID PCR positive", "COVID antigen positive", "concurrent COVID", "COVID-19 confirmed", "coronavirus positive", "COVID diagnosed", "nucleocapsid positive", "recent COVID", "prior COVID", "had COVID", "recovered from COVID", "post-COVID", "COVID infection prior", "COVID 2 weeks ago", "COVID 3 weeks ago", "COVID 4 weeks ago"],
+            "negative_keywords": ["COVID negative", "COVID test negative", "no COVID", "COVID not tested", "SARS negative", "PCR negative", "antigen negative", "COVID not detected", "nucleocapsid negative", "no prior COVID", "no recent COVID", "never had COVID"],
+            "differentiation_guide": "This marker assesses whether a confirmed SARS-CoV-2 infection could plausibly CAUSE the current myocarditis. Plausibility depends on TEMPORAL RELATIONSHIP between infection and cardiac onset: (1) ACTIVE infection at cardiac onset (concurrent positive PCR/antigen) → HIGH plausibility — direct viral cardiotropic injury or acute inflammatory response. (2) Recent infection 2-6 weeks before cardiac onset → MODERATE plausibility — post-infectious inflammation or MIS-C/MIS-A pathway. (3) Remote infection >6 weeks before cardiac onset → LOW plausibility — insufficient temporal proximity for causal inference. (4) Nucleocapsid antibody positive with unknown infection timing → plausibility depends on clinical context: if vaccination was recent AND no other temporal markers of infection, nucleocapsid positivity alone establishes prior infection but does NOT establish temporal causation. IMPORTANT: Nucleocapsid antibody differentiates natural infection from vaccination (mRNA vaccines produce only spike antibody, not nucleocapsid). A positive nucleocapsid test confirms prior natural infection occurred at some point, which is relevant for MIS-C/MIS-A differentiation. For plausibility scoring: concurrent active infection = high, recent infection with compatible timeline = moderate, remote or undated infection = low/none.",
+            "weight": 0.8
+          },
+          {
+            "finding": "mis_c_criteria_met",
+            "description": "Multisystem Inflammatory Syndrome in Children (MIS-C) criteria met — pediatric hyperinflammatory syndrome post-COVID-19",
+            "extraction_keywords": ["MIS-C", "multisystem inflammatory syndrome", "MIS-C criteria", "pediatric inflammatory syndrome", "Kawasaki-like"],
+            "negative_keywords": ["no MIS-C", "MIS-C not suspected", "does not meet MIS-C criteria"],
+            "differentiation_guide": "MIS-C can be triggered by BOTH SARS-CoV-2 infection AND mRNA vaccination. Key differentiators: (1) Nucleocapsid antibody positive → prior natural infection (vaccination produces only spike antibody) → infection-triggered MIS-C = alternative cause. (2) Nucleocapsid negative + recent vaccination → vaccine-triggered MIS-C-like presentation = vaccine causation. (3) Both vaccination AND recent infection history → requires clinical judgment on dominant trigger. TRUE only if multi-system inflammatory syndrome criteria met: persistent fever (>24h) + multi-organ involvement (≥2 of cardiac, GI, mucocutaneous, hematologic, neurologic) + elevated inflammatory markers (CRP, ferritin, D-dimer).",
+            "weight": 0.6
+          },
+          {
+            "finding": "mis_a_criteria_met",
+            "description": "Multisystem Inflammatory Syndrome in Adults (MIS-A) criteria met — adult hyperinflammatory syndrome post-COVID-19",
+            "extraction_keywords": ["MIS-A", "multisystem inflammatory syndrome adult", "MIS-A criteria", "adult inflammatory syndrome"],
+            "negative_keywords": ["no MIS-A", "MIS-A not suspected", "does not meet MIS-A criteria"],
+            "differentiation_guide": "MIS-A is the adult equivalent of MIS-C, occurring 2-6 weeks after COVID-19 infection with hyperinflammatory multi-organ involvement. Like MIS-C, MIS-A can be triggered by BOTH SARS-CoV-2 infection AND mRNA vaccination. Key differentiators: (1) Nucleocapsid antibody positive → prior natural infection (vaccination produces only spike antibody) → infection-triggered MIS-A = alternative cause. (2) Nucleocapsid negative + recent vaccination → vaccine-triggered MIS-A-like presentation = vaccine causation. (3) Both vaccination AND recent infection → requires clinical judgment on dominant trigger. TRUE only if multi-system inflammatory syndrome criteria met: persistent fever + multi-organ involvement (>=2 of cardiac, GI, hematologic, dermatologic, neurologic) + elevated inflammatory markers (CRP, ferritin, D-dimer) + age >=21 years. MIS-A is distinguished from simple vaccine-induced myocarditis by the MULTI-ORGAN involvement pattern.",
+            "weight": 0.6
+          }
+        ],
+        "supporting_indicators": [
+          {
+            "finding": "elevated_d_dimer",
+            "description": "D-dimer elevation suggesting thrombotic or hypercoagulable state",
+            "extraction_keywords": ["D-dimer elevated", "elevated D-dimer", "D-dimer high", "high D-dimer", "D-dimer above normal"],
+            "negative_keywords": ["D-dimer normal", "normal D-dimer", "D-dimer not elevated"],
+            "differentiation_guide": "Elevated D-dimer in the setting of COVID-19 and myocarditis suggests microvascular thrombosis component. D-dimer is nonspecific and can be elevated in many conditions. Most relevant when combined with active or recent COVID-19.",
+            "weight": 0.2
+          }
+        ],
+        "confirmatory": []
+      },
+      "high_suspicion_criteria": "Active or recent (within 4 weeks) laboratory-confirmed COVID-19 combined with cardiac involvement. Strongest when MIS-C/MIS-A criteria are met (multi-organ inflammation + cardiac involvement + prior COVID-19). Elevated D-dimer supports microvascular thrombosis mechanism."
+    },
+
+    "autoimmune_inflammatory": {
+      "label": "Autoimmune/inflammatory myocarditis",
+      "pathophysiology": "Systemic autoimmune diseases (SLE, sarcoidosis, rheumatoid arthritis, vasculitis) can cause myocardial inflammation through immune complex deposition, granulomatous infiltration, or direct autoimmune T-cell attack on cardiac tissue. Cardiac sarcoidosis is characterized by non-caseating granulomas in the myocardium. Autoimmune myocarditis can be a new manifestation or a flare of known disease.",
+      "clinical_features": {
+        "primary_indicators": [
+          {
+            "finding": "known_autoimmune_dx",
+            "description": "Known diagnosis of a systemic autoimmune disease (SLE, sarcoidosis, rheumatoid arthritis, inflammatory bowel disease, vasculitis, etc.)",
+            "extraction_keywords": ["autoimmune", "lupus", "SLE", "sarcoidosis", "rheumatoid arthritis", "RA", "vasculitis", "inflammatory bowel disease", "IBD", "Crohn", "ulcerative colitis", "multiple sclerosis", "MS", "psoriasis", "dermatomyositis", "polymyositis", "scleroderma", "Sjogren", "celiac disease", "thyroiditis", "Hashimoto", "Graves"],
+            "negative_keywords": ["no autoimmune disease", "no autoimmune history", "no rheumatologic disease"],
+            "differentiation_guide": "Autoimmune disease HISTORY raises suspicion but does NOT confirm that the current myocarditis is autoimmune-mediated. Patients with autoimmune diseases can also develop vaccine-induced myocarditis. ACTIVE FLARE is critical: concurrent systemic flare symptoms (joint inflammation, rash, serositis, rising autoimmune markers) at the time of myocarditis onset strongly suggests autoimmune etiology. Stable or quiescent autoimmune disease without flare is much less likely to explain acute myocarditis. ALSO NOTE: Some autoimmune conditions (thyroiditis, celiac, psoriasis) rarely cause myocarditis directly. For plausibility scoring: active flare of a cardiac-tropic autoimmune disease (SLE, sarcoidosis, vasculitis, dermatomyositis) = high; stable autoimmune disease without flare = low; non-cardiac autoimmune condition (thyroiditis, celiac) = none to low.",
+            "weight": 0.5
+          },
+          {
+            "finding": "positive_ana_dsdna",
+            "description": "Positive antinuclear antibody (ANA), anti-dsDNA, or other autoimmune serological markers",
+            "extraction_keywords": ["ANA positive", "anti-dsDNA positive", "antinuclear antibody", "autoimmune markers positive", "rheumatoid factor positive", "anti-CCP positive", "complement low", "C3 low", "C4 low", "ANCA positive"],
+            "negative_keywords": ["ANA negative", "autoimmune markers negative", "normal ANA", "autoimmune workup negative"],
+            "differentiation_guide": "Positive autoimmune serologies in the setting of myocarditis suggest autoimmune-mediated cardiac inflammation. However, ANA can be weakly positive in healthy individuals — clinical correlation is essential. High-titer ANA or positive anti-dsDNA with clinical features is more specific.",
+            "weight": 0.5
+          }
+        ],
+        "supporting_indicators": [
+          {
+            "finding": "systemic_inflammation",
+            "description": "Multi-organ inflammatory signs BEYOND cardiac involvement, indicating a systemic inflammatory process",
+            "extraction_keywords": ["multi-organ inflammation", "systemic inflammation", "polyserositis", "pleuritis", "pericarditis with pleuritis", "arthritis with myocarditis", "nephritis", "skin lesions", "mucocutaneous", "multi-system", "widespread inflammation"],
+            "negative_keywords": ["cardiac only", "no systemic involvement", "isolated myocarditis", "no extra-cardiac inflammation"],
+            "differentiation_guide": "TRUE only for extra-cardiac multi-organ inflammation (e.g., concurrent nephritis, pleuritis, arthritis, dermatitis). CRP elevation from myocarditis ALONE does not count — that is expected in any myocarditis. The key is whether inflammation involves multiple organ systems BEYOND the heart, suggesting a systemic process rather than isolated cardiac inflammation.",
+            "weight": 0.3
+          }
+        ],
+        "confirmatory": [
+          {
+            "finding": "granulomas_on_biopsy",
+            "description": "Non-caseating granulomas identified on endomyocardial biopsy, characteristic of cardiac sarcoidosis",
+            "extraction_keywords": ["granulomas", "granulomatous", "non-caseating granulomas", "sarcoid granulomas", "cardiac sarcoidosis on biopsy", "granulomatous myocarditis"],
+            "negative_keywords": ["no granulomas", "biopsy not performed", "lymphocytic only"],
+            "differentiation_guide": "Non-caseating granulomas on EMB are diagnostic of cardiac sarcoidosis or other granulomatous processes. This is a definitive finding that clearly distinguishes from vaccine-induced myocarditis.",
+            "weight": 0.9
+          }
+        ]
+      },
+      "high_suspicion_criteria": "Known autoimmune disease with positive serological markers and multi-organ inflammation concurrent with myocarditis onset. Cardiac sarcoidosis is confirmed by granulomas on biopsy. Active autoimmune disease flare at the time of cardiac presentation is particularly concerning."
+    }
+  }
+}

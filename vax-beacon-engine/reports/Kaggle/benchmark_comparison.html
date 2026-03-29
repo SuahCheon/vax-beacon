@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vax-Beacon v4 — Benchmark Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0e13;
+  --surface: #14171e;
+  --surface2: #1a1e28;
+  --border: #252a36;
+  --text: #e4e7ef;
+  --text-dim: #7a8199;
+  --accent-blue: #4e8cff;
+  --accent-teal: #36d6b5;
+  --accent-amber: #f5a623;
+  --accent-rose: #f25f7a;
+  --accent-purple: #9b7dff;
+  --a1: #4e8cff;
+  --b2: #f5a623;
+  --c: #f25f7a;
+  --uc: #7a8199;
+  --b1: #36d6b5;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header */
+.header {
+  text-align: center;
+  margin-bottom: 3rem;
+  position: relative;
+}
+.header::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-teal));
+  margin: 1.5rem auto 0;
+  border-radius: 2px;
+}
+.header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent-blue) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.header .subtitle {
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  margin-top: 0.5rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+}
+
+/* KPI Row */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.kpi-card.blue::before { background: var(--accent-blue); }
+.kpi-card.teal::before { background: var(--accent-teal); }
+.kpi-card.amber::before { background: var(--accent-amber); }
+.kpi-card.rose::before { background: var(--accent-rose); }
+.kpi-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  margin-bottom: 0.5rem;
+}
+.kpi-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2rem;
+  font-weight: 700;
+}
+.kpi-value.blue { color: var(--accent-blue); }
+.kpi-value.teal { color: var(--accent-teal); }
+.kpi-value.amber { color: var(--accent-amber); }
+.kpi-value.rose { color: var(--accent-rose); }
+.kpi-delta {
+  font-size: 0.75rem;
+  color: var(--accent-teal);
+  margin-top: 0.25rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+.kpi-delta.neg { color: var(--accent-rose); }
+
+/* Section */
+.section {
+  margin-bottom: 2.5rem;
+}
+.section-title {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+  border-left: 3px solid var(--accent-blue);
+}
+
+/* Charts Grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+.chart-card.full {
+  grid-column: 1 / -1;
+}
+.chart-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+  color: var(--text);
+}
+
+/* Bar Chart */
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.bar-row {
+  display: grid;
+  grid-template-columns: 100px 1fr 50px;
+  align-items: center;
+  gap: 0.75rem;
+}
+.bar-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  text-align: right;
+  color: var(--text-dim);
+}
+.bar-track {
+  height: 28px;
+  background: var(--surface2);
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 1s ease;
+  position: relative;
+}
+.bar-fill.claude {
+  opacity: 0.85;
+}
+.bar-fill.medgemma {
+  opacity: 0.55;
+  position: absolute;
+  top: 0;
+}
+.bar-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Dual bar */
+.dual-bar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+.dual-bar-header {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+.dual-bar-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 40px;
+  align-items: center;
+  gap: 0.5rem;
+}
+.dual-bar-label {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  text-align: right;
+}
+.dual-bar-track {
+  height: 20px;
+  background: var(--surface2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.dual-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+}
+.dual-bar-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Confusion Matrix / Cross-tab */
+.cross-tab {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 3px;
+}
+.cross-tab th {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.5rem;
+  text-align: center;
+}
+.cross-tab th.row-header {
+  text-align: right;
+  padding-right: 0.75rem;
+}
+.cross-tab td {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 0.6rem;
+  border-radius: 6px;
+  background: var(--surface2);
+  min-width: 50px;
+}
+.cross-tab td.diag {
+  background: rgba(78, 140, 255, 0.15);
+  color: var(--accent-blue);
+  border: 1px solid rgba(78, 140, 255, 0.3);
+}
+.cross-tab td.off-diag {
+  color: var(--text-dim);
+}
+.cross-tab td.off-diag.hot {
+  background: rgba(242, 95, 122, 0.1);
+  color: var(--accent-rose);
+}
+.cross-tab .corner {
+  background: transparent;
+}
+.cross-tab .axis-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  background: transparent;
+}
+
+/* Mechanistic Panel */
+.mech-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+.mech-item {
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+}
+.mech-item .label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  margin-bottom: 0.4rem;
+}
+.mech-item .val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+.mech-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.mech-sub {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface2);
+  border-radius: 6px;
+  font-size: 0.78rem;
+}
+.mech-sub .k { color: var(--text-dim); }
+.mech-sub .v { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+/* Insight Box */
+.insight-box {
+  background: linear-gradient(135deg, rgba(78,140,255,0.06), rgba(54,214,181,0.06));
+  border: 1px solid rgba(78,140,255,0.2);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  margin-top: 1.5rem;
+}
+.insight-box h4 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-blue);
+  margin-bottom: 0.75rem;
+}
+.insight-box ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.insight-box li {
+  font-size: 0.82rem;
+  color: var(--text);
+  line-height: 1.5;
+  padding-left: 1.2rem;
+  position: relative;
+}
+.insight-box li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: var(--accent-teal);
+  font-weight: 600;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.legend-dot.claude { background: var(--accent-blue); }
+.legend-dot.medgemma { background: var(--accent-teal); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+  .charts-grid { grid-template-columns: 1fr; }
+  .mech-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="dashboard">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Vax-Beacon v4 — Benchmark Comparison</h1>
+    <div class="subtitle">N=100 VAERS Cases · WHO AEFI Causality · Claude Sonnet 4.5 vs MedGemma 4B</div>
+  </div>
+
+  <!-- KPI Row -->
+  <div class="kpi-row">
+    <div class="kpi-card blue">
+      <div class="kpi-label">Concordance</div>
+      <div class="kpi-value blue">62%</div>
+      <div class="kpi-delta">↑ 8%p from v3 (54%)</div>
+    </div>
+    <div class="kpi-card teal">
+      <div class="kpi-label">UC Reduction (MedGemma)</div>
+      <div class="kpi-value teal">−50%</div>
+      <div class="kpi-delta">44 → 22 cases</div>
+    </div>
+    <div class="kpi-card amber">
+      <div class="kpi-label">Top Disagreement</div>
+      <div class="kpi-value amber">A1→B2</div>
+      <div class="kpi-delta">16 cases (42% of diffs)</div>
+    </div>
+    <div class="kpi-card rose">
+      <div class="kpi-label">Errors</div>
+      <div class="kpi-value" style="color: var(--accent-teal);">0</div>
+      <div class="kpi-delta">both backends</div>
+    </div>
+  </div>
+
+  <!-- WHO Distribution -->
+  <div class="section">
+    <div class="section-title">WHO Category Distribution</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot claude"></div>Claude Sonnet 4.5</div>
+      <div class="legend-item"><div class="legend-dot medgemma"></div>MedGemma 4B</div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card full">
+        <div class="bar-chart">
+          <!-- A1 -->
+          <div class="dual-bar-group">
+            <div class="dual-bar-header" style="color: var(--a1);">A1 — Vaccine-Associated</div>
+            <div class="dual-bar-row">
+              <div class="dual-bar-label">Claude</div>
+              <div class="dual-bar-track"><div class="dual-bar-fill" style="width:92%;background:var(--a1);"></div></div>
+              <div class="dual-bar-val" style="color:var(--a1);">46</div>
+            </div>
+            <div class="dual-bar-row">
+              <div class="dual-bar-label">MedGemma</div>
+              <div class="dual-bar-track"><div class="dual-bar-fill" style="width:50%;background:var(--a1);opacity:0.6;"></div></div>
+              <div class="dual-bar-val" style="color:var(--a1);opacity:0.7;">25</div>
+            </div>
+          </div>
+          <!-- B2 -->
+          <div class="dual-bar-group">
+            <div class="dual-bar-header" style="color: var(--b2);">B2 — Indeterminate</div>
+            <div class="dual-bar-row">
+              <div class="dual-bar-label">Claude</div>
+              <div class="dual-bar-track"><div class="dual-bar-fill" style="width:12%;background:var(--b2);"></div></div>
+              <div class="dual-bar-val" style="color:var(--b2);">6</div>
+            </div>
+            <div class="dual-bar-row">
+              <div class="dual-bar-label">MedGemma</div>
+              <div class="dual-bar-track"><div class="dual-bar-fill" style="width:44%;background:var(--b2);opacity:0.6;"></div></div>
+              <div class="dual-bar-val" style="color:var(--b2);opacity:0.7;">22</div>
+            </div>
+          </div>
+          <!-- C -->
+          <div class="dual-bar-group">
+            <div class="dual-bar-header" style="color: var(--c);">C — Coincidental</div>
+            <div class="dual-bar-row">
+              <div class="dual-bar-label">Claude</div>
+              <div class="dual-bar-track"><div class="dual-bar-fill" style="width:54%;background:var(--c);"></div></div>
+              <div class="dual-bar-val" style="color:var(--c);">27</div>
+            </div>
+            <div class="dual-bar-row">
+              <div class="dual-bar-label">MedGemma</div>
+              <div class="dual-bar-track"><div class="dual-bar-fill" style="width:62%;background:var(--c);opacity:0.6;"></div></div>
+              <div class="dual-bar-val" style="color:var(--c);opacity:0.7;">31</div>
+            </div>
+          </div>
+          <!-- UC -->
+          <div class="dual-bar-group">
+            <div class="dual-bar-header" style="color: var(--uc);">Unclassifiable</div>
+            <div class="dual-bar-row">
+              <div class="dual-bar-label">Claude</div>
+              <div class="dual-bar-track"><div class="dual-bar-fill" style="width:42%;background:var(--uc);"></div></div>
+              <div class="dual-bar-val" style="color:var(--uc);">21</div>
+            </div>
+            <div class="dual-bar-row">
+              <div class="dual-bar-label">MedGemma</div>
+              <div class="dual-bar-track"><div class="dual-bar-fill" style="width:44%;background:var(--uc);opacity:0.6;"></div></div>
+              <div class="dual-bar-val" style="color:var(--uc);opacity:0.7;">22</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cross-tabulation & Disagreement -->
+  <div class="section">
+    <div class="section-title">Cross-Tabulation & Disagreement Analysis</div>
+    <div class="charts-grid">
+      <!-- Cross-tab -->
+      <div class="chart-card">
+        <div class="chart-title">Classification Agreement Matrix</div>
+        <table class="cross-tab">
+          <tr>
+            <th class="corner"></th>
+            <th class="axis-label" colspan="4">MedGemma 4B →</th>
+          </tr>
+          <tr>
+            <th class="row-header" style="font-size:0.6rem;">Claude ↓</th>
+            <th style="color:var(--a1);">A1</th>
+            <th style="color:var(--b2);">B2</th>
+            <th style="color:var(--c);">C</th>
+            <th style="color:var(--uc);">UC</th>
+          </tr>
+          <tr>
+            <th class="row-header" style="color:var(--a1);">A1</th>
+            <td class="diag">20</td>
+            <td class="off-diag hot">16</td>
+            <td class="off-diag hot">7</td>
+            <td class="off-diag">3</td>
+          </tr>
+          <tr>
+            <th class="row-header" style="color:var(--b2);">B2</th>
+            <td class="off-diag">0</td>
+            <td class="diag">4</td>
+            <td class="off-diag">1</td>
+            <td class="off-diag">1</td>
+          </tr>
+          <tr>
+            <th class="row-header" style="color:var(--c);">C</th>
+            <td class="off-diag">2</td>
+            <td class="off-diag">1</td>
+            <td class="diag">22</td>
+            <td class="off-diag">2</td>
+          </tr>
+          <tr>
+            <th class="row-header" style="color:var(--uc);">UC</th>
+            <td class="off-diag">3</td>
+            <td class="off-diag">1</td>
+            <td class="off-diag">1</td>
+            <td class="diag">16</td>
+          </tr>
+        </table>
+        <div style="text-align:center;margin-top:0.75rem;font-size:0.7rem;color:var(--text-dim);">
+          Diagonal = agreement (62/100) · <span style="color:var(--accent-rose);">Red</span> = major disagreement
+        </div>
+      </div>
+
+      <!-- Disagreement patterns -->
+      <div class="chart-card">
+        <div class="chart-title">Top Disagreement Patterns</div>
+        <div style="display:flex;flex-direction:column;gap:0.6rem;">
+          <!-- A1->B2 -->
+          <div style="display:grid;grid-template-columns:100px 1fr 30px;align-items:center;gap:0.5rem;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;text-align:right;">
+              <span style="color:var(--a1);">A1</span><span style="color:var(--text-dim);"> → </span><span style="color:var(--b2);">B2</span>
+            </div>
+            <div style="height:22px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+              <div style="width:100%;height:100%;background:linear-gradient(90deg,var(--a1),var(--b2));border-radius:4px;opacity:0.7;"></div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:600;">16</div>
+          </div>
+          <!-- A1->C -->
+          <div style="display:grid;grid-template-columns:100px 1fr 30px;align-items:center;gap:0.5rem;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;text-align:right;">
+              <span style="color:var(--a1);">A1</span><span style="color:var(--text-dim);"> → </span><span style="color:var(--c);">C</span>
+            </div>
+            <div style="height:22px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+              <div style="width:44%;height:100%;background:linear-gradient(90deg,var(--a1),var(--c));border-radius:4px;opacity:0.7;"></div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:600;">7</div>
+          </div>
+          <!-- A1->UC -->
+          <div style="display:grid;grid-template-columns:100px 1fr 30px;align-items:center;gap:0.5rem;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;text-align:right;">
+              <span style="color:var(--a1);">A1</span><span style="color:var(--text-dim);"> → </span><span style="color:var(--uc);">UC</span>
+            </div>
+            <div style="height:22px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+              <div style="width:19%;height:100%;background:linear-gradient(90deg,var(--a1),var(--uc));border-radius:4px;opacity:0.7;"></div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:600;">3</div>
+          </div>
+          <!-- UC->A1 -->
+          <div style="display:grid;grid-template-columns:100px 1fr 30px;align-items:center;gap:0.5rem;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;text-align:right;">
+              <span style="color:var(--uc);">UC</span><span style="color:var(--text-dim);"> → </span><span style="color:var(--a1);">A1</span>
+            </div>
+            <div style="height:22px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+              <div style="width:19%;height:100%;background:linear-gradient(90deg,var(--uc),var(--a1));border-radius:4px;opacity:0.7;"></div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:600;">3</div>
+          </div>
+          <!-- C->A1 -->
+          <div style="display:grid;grid-template-columns:100px 1fr 30px;align-items:center;gap:0.5rem;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;text-align:right;">
+              <span style="color:var(--c);">C</span><span style="color:var(--text-dim);"> → </span><span style="color:var(--a1);">A1</span>
+            </div>
+            <div style="height:22px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+              <div style="width:13%;height:100%;background:linear-gradient(90deg,var(--c),var(--a1));border-radius:4px;opacity:0.7;"></div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:600;">2</div>
+          </div>
+          <!-- C->UC -->
+          <div style="display:grid;grid-template-columns:100px 1fr 30px;align-items:center;gap:0.5rem;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.75rem;text-align:right;">
+              <span style="color:var(--c);">C</span><span style="color:var(--text-dim);"> → </span><span style="color:var(--uc);">UC</span>
+            </div>
+            <div style="height:22px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+              <div style="width:13%;height:100%;background:linear-gradient(90deg,var(--c),var(--uc));border-radius:4px;opacity:0.7;"></div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;font-weight:600;">2</div>
+          </div>
+        </div>
+        <div style="margin-top:1rem;font-size:0.72rem;color:var(--text-dim);line-height:1.5;">
+          Direction: Claude classification → MedGemma classification.<br>
+          MedGemma detects more alternative causes (NCI ≥ 0.4) → shifts A1 to B2.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mechanistic Signatures -->
+  <div class="section">
+    <div class="section-title">Nordic Study Mechanistic Signatures (New in v4)</div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">Mechanistic Detection — Claude</div>
+        <div class="mech-grid">
+          <div class="mech-item">
+            <div class="label">Concordant</div>
+            <div class="val" style="color:var(--accent-teal);">10</div>
+          </div>
+          <div class="mech-item">
+            <div class="label">Isolated Fever</div>
+            <div class="val" style="color:var(--accent-amber);">18</div>
+          </div>
+          <div class="mech-item">
+            <div class="label">Mean Score</div>
+            <div class="val" style="color:var(--accent-blue);">0.17</div>
+          </div>
+        </div>
+        <div class="mech-row">
+          <div class="mech-sub"><span class="k">Focal LGE</span><span class="v" style="color:var(--accent-teal);">3</span></div>
+          <div class="mech-sub"><span class="k">Diffuse LGE</span><span class="v" style="color:var(--accent-rose);">5</span></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Mechanistic Detection — MedGemma</div>
+        <div class="mech-grid">
+          <div class="mech-item">
+            <div class="label">Concordant</div>
+            <div class="val" style="color:var(--accent-teal);">7</div>
+          </div>
+          <div class="mech-item">
+            <div class="label">Isolated Fever</div>
+            <div class="val" style="color:var(--accent-amber);">10</div>
+          </div>
+          <div class="mech-item">
+            <div class="label">Mean Score</div>
+            <div class="val" style="color:var(--accent-blue);">0.16</div>
+          </div>
+        </div>
+        <div class="mech-row">
+          <div class="mech-sub"><span class="k">Focal LGE</span><span class="v" style="color:var(--accent-teal);">5</span></div>
+          <div class="mech-sub"><span class="k">Diffuse LGE</span><span class="v" style="color:var(--accent-rose);">3</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Version Progression -->
+  <div class="section">
+    <div class="section-title">MedGemma Version Progression</div>
+    <div class="chart-card full">
+      <div class="chart-title">Unclassifiable Count Across Versions</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;text-align:center;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:0.5rem;">v3.0 (baseline)</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:2.5rem;font-weight:700;color:var(--accent-rose);">44</div>
+          <div style="height:6px;background:var(--surface2);border-radius:3px;margin-top:0.5rem;">
+            <div style="width:88%;height:100%;background:var(--accent-rose);border-radius:3px;opacity:0.6;"></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:0.5rem;">v3.1 (regex onset)</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:2.5rem;font-weight:700;color:var(--accent-amber);">44</div>
+          <div style="height:6px;background:var(--surface2);border-radius:3px;margin-top:0.5rem;">
+            <div style="width:88%;height:100%;background:var(--accent-amber);border-radius:3px;opacity:0.6;"></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--text-dim);margin-bottom:0.5rem;">v4.0 (this run)</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:2.5rem;font-weight:700;color:var(--accent-teal);">22</div>
+          <div style="height:6px;background:var(--surface2);border-radius:3px;margin-top:0.5rem;">
+            <div style="width:44%;height:100%;background:var(--accent-teal);border-radius:3px;"></div>
+          </div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:1rem;font-size:0.72rem;color:var(--text-dim);">
+        Key fixes: original_case_text separation (L4 recovery) + numeric extraction (troponin/ECG/echo/CRP/BNP)
+      </div>
+    </div>
+  </div>
+
+  <!-- Insight -->
+  <div class="insight-box">
+    <h4>Key Findings</h4>
+    <ul>
+      <li><strong>62% concordance</strong> between Claude Sonnet 4.5 and MedGemma 4B on WHO AEFI classification — up from 54% in v3</li>
+      <li><strong>Dominant disagreement pattern:</strong> Claude A1 → MedGemma B2 (16 cases). MedGemma's Stage 3A generates more false-positive clinical observations, inflating NCI scores above the 0.4 threshold</li>
+      <li><strong>Deterministic code guards classification:</strong> C and UC categories show near-identical rates (27 vs 31, 21 vs 22), confirming that code-based decisions (Brighton, temporal, NCI thresholds) stabilize outputs regardless of LLM quality</li>
+      <li><strong>MedGemma UC halved:</strong> 44→22 through original_case_text fix (prevents truncation from stripping clinical keywords) and numeric lab extraction (troponin values, LVEF%, CRP/BNP)</li>
+      <li><strong>Nordic Study mechanistic signatures:</strong> 7-10 concordant cases detected, focal/diffuse LGE patterns captured — zero additional LLM calls (all keyword regex)</li>
+    </ul>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    Vax-Beacon v4 · WHO AEFI Digital Manual Architecture · github.com/SuahCheon/vax-beacon · 2026-02-23
+  </div>
+
+</div>
+</body>
+</html>

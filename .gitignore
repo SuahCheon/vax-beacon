@@ -21,19 +21,25 @@ NUL
 
 # Runtime logs
 logs/
+vax-beacon-engine/logs/
 
 # Generated reports
-reports/*.md
-reports/*.docx
+vax-beacon-engine/reports/*.md
+vax-beacon-engine/reports/*.docx
 
 # Results — only benchmark CSV is committed
-results/*
-!results/benchmark_*.csv
-!results/.gitkeep
+vax-beacon-engine/results/*
+!vax-beacon-engine/results/benchmark_*.csv
+!vax-beacon-engine/results/results_*.json
+!vax-beacon-engine/results/.gitkeep
 
 # Docs — exclude PDFs and technical_overview (Kaggle-only)
 docs/*.pdf
 docs/technical_overview.md
 
 # Dev-only scripts (instructions, compare scripts, execution plans)
-scripts/
+vax-beacon-engine/scripts/
+
+# Archives
+vax-beacon-engine/vax-beacon-source.zip
+Hf API.txt

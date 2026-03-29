@@ -1,0 +1,13 @@
+graph TD
+    A[Unstructured ICSR/VAERS] --> B{Stage 1: Extractor<br/><b>MedGemma 4B</b>}
+    B --> C{Stage 2: Validator<br/><b>MedGemma 4B</b>}
+    C -->|Brighton Level Verified| D{Stage 3: DDx Specialist<br/><b>22-Day Threshold</b>}
+    D -->|Mechanistic Plausibility| E{Stage 4: Auditor<br/><b>Known AE + Temporal</b>}
+    E -->|Negative Causality Index| F{Stage 5: Assessor<br/><b>Causality</b>}
+    F -->|NAM 2024 Compliance| G{Stage 6: Advisor<br/><b>MedGemma 4B</b>}
+    G --> H[Final Regulatory Report]
+    style B fill:#e1f5fe,stroke:#01579b
+    style C fill:#e1f5fe,stroke:#01579b
+    style E fill:#fff3e0,stroke:#e65100
+    style F fill:#fff3e0,stroke:#e65100
+    style G fill:#e1f5fe,stroke:#01579b

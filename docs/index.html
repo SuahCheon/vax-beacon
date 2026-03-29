@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vax-Beacon | Case Report Viewer</title>
+<meta name="description" content="Vax-Beacon: Neuro-symbolic AEFI causality assessment pipeline. Interactive case report viewer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e293b;
+    --border-light: #2d3a4f;
+    --text: #e2e8f0;
+    --text-dim: #8896ab;
+    --text-muted: #4a5568;
+    --accent: #60a5fa;
+    --accent-dim: #1e3a5f;
+    --green: #34d399;
+    --green-dim: #064e3b;
+    --amber: #fbbf24;
+    --amber-dim: #78350f;
+    --red: #f87171;
+    --red-dim: #7f1d1d;
+    --purple: #a78bfa;
+    --orange: #fb923c;
+    --orange-dim: #431407;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+  .mono { font-family:'JetBrains Mono',monospace; }
+
+  /* Header */
+  .header { 
+    background:linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); 
+    border-bottom:1px solid var(--border);
+    padding:16px 24px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .header-left { display:flex; align-items:center; gap:12px; }
+  .logo { font-size:20px; font-weight:700; letter-spacing:2px; color:#fff; }
+  .logo span { color:var(--accent); }
+  .header-tag { font-size:11px; color:var(--text-dim); border-left:1px solid var(--border-light); padding-left:12px; text-transform:uppercase; letter-spacing:1px; }
+  .header-right { font-size:11px; color:var(--text-muted); }
+  .header-right a { color:var(--accent); text-decoration:none; }
+
+  /* Case Tabs */
+  .tabs { 
+    background:var(--surface); border-bottom:1px solid var(--border);
+    padding:8px 24px; display:flex; gap:8px; overflow-x:auto;
+  }
+  .tab {
+    padding:8px 16px; border-radius:8px; border:1px solid var(--border);
+    background:transparent; color:var(--text-dim); cursor:pointer;
+    font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500;
+    display:flex; align-items:center; gap:8px; white-space:nowrap;
+    transition:all .2s;
+  }
+  .tab:hover { border-color:var(--border-light); color:var(--text); }
+  .tab.active { background:var(--accent-dim); border-color:var(--accent); color:var(--accent); }
+  .tab-badge {
+    font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700;
+    padding:2px 6px; border-radius:4px;
+  }
+  .badge-unclass { background:#78350f; color:#fbbf24; }
+  .badge-a1 { background:#7f1d1d; color:#f87171; }
+  .badge-b2 { background:#713f12; color:#facc15; }
+  .badge-c { background:#1e3a5f; color:#60a5fa; }
+
+  /* Main Layout */
+  .main { display:flex; height:calc(100vh - 100px); overflow:hidden; }
+  
+  /* Left Panel */
+  .left { 
+    width:38%; border-right:1px solid var(--border);
+    overflow-y:auto; background:var(--surface);
+  }
+  .panel-header {
+    padding:12px 20px; border-bottom:1px solid var(--border);
+    font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1.5px;
+    display:flex; align-items:center; gap:8px;
+    position:sticky; top:0; z-index:1;
+  }
+  .panel-header.vaers { background:linear-gradient(135deg, #431407, #1a0a00); color:var(--orange); }
+  .panel-header.pipeline { background:linear-gradient(135deg, #0c1a3a, #0a0e17); color:var(--accent); }
+  .panel-body { padding:20px; }
+
+  /* VAERS Card */
+  .case-id { font-family:'JetBrains Mono',monospace; font-size:28px; font-weight:700; color:#fff; }
+  .who-badge {
+    display:inline-block; padding:4px 12px; border-radius:6px; font-size:12px; font-weight:700;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:16px 0; }
+  .info-cell { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+  .info-label { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+  .info-value { font-size:14px; font-weight:600; color:var(--text); }
+  .symptom-tags { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0; }
+  .symptom-tag { 
+    font-size:11px; padding:4px 10px; border-radius:20px;
+    background:var(--orange-dim); color:var(--orange); border:1px solid rgba(251,146,60,0.2);
+  }
+  .narrative-box {
+    background:var(--bg); border:1px solid var(--border); border-radius:8px;
+    padding:16px; margin:12px 0; font-size:13px; line-height:1.7;
+    color:var(--text-dim); font-style:italic; border-left:3px solid var(--orange);
+  }
+  .section-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; margin-top:16px; }
+
+  /* Right Panel */
+  .right { width:62%; overflow-y:auto; background:var(--bg); }
+
+  /* Stage Cards */
+  .stage-card { border:1px solid var(--border); border-radius:8px; margin-bottom:6px; overflow:hidden; transition:border-color .2s; }
+  .stage-card:hover { border-color:var(--border-light); }
+  .stage-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 14px; cursor:pointer; background:var(--surface);
+    transition:background .2s;
+  }
+  .stage-header:hover { background:var(--surface2); }
+  .stage-left { display:flex; align-items:center; gap:10px; }
+  .stage-num { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--text-muted); width:20px; }
+  .stage-name { font-size:13px; font-weight:600; color:var(--text); }
+  .stage-badges { display:flex; gap:6px; }
+  .stage-badge { font-family:'JetBrains Mono',monospace; font-size:10px; padding:2px 8px; border-radius:4px; font-weight:600; }
+  .status-pass { color:var(--green); }
+  .status-warn { color:var(--amber); }
+  .status-fail { color:var(--red); }
+  .status-skip { color:var(--text-muted); }
+  .stage-detail { padding:12px 14px; font-size:12px; color:var(--text-dim); line-height:1.6; border-top:1px solid var(--border); background:var(--bg); }
+  .stage-path { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-muted); margin-top:6px; }
+  .chevron { font-size:10px; color:var(--text-muted); transition:transform .2s; }
+  .chevron.open { transform:rotate(180deg); }
+
+  /* Guidance Panel */
+  .guidance {
+    background:linear-gradient(135deg, #0c1a3a 0%, #111827 100%);
+    border:1px solid var(--accent-dim); border-radius:10px;
+    padding:20px; margin-top:12px;
+  }
+  .guidance-title { font-size:13px; font-weight:700; color:var(--accent); margin-bottom:12px; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:1px; }
+  .officer-summary { font-size:13px; line-height:1.8; color:var(--text); margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+  .gaps-title { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1.5px; margin-bottom:10px; }
+  .gap-card { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:8px; }
+  .gap-header { display:flex; align-items:flex-start; gap:10px; }
+  .gap-priority { font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; padding:3px 8px; border-radius:4px; white-space:nowrap; }
+  .priority-CRITICAL { background:var(--red); color:#fff; }
+  .priority-HIGH { background:var(--orange); color:#fff; }
+  .priority-MEDIUM { background:var(--amber); color:#000; }
+  .priority-LOW { background:var(--text-muted); color:#fff; }
+  .gap-item { font-size:13px; font-weight:600; color:var(--text); }
+  .gap-reason { font-size:11px; color:var(--text-dim); margin-top:4px; }
+  .gap-action { font-size:11px; color:var(--accent); margin-top:4px; }
+  .fastest-path {
+    margin-top:12px; padding:10px 14px; border-radius:6px;
+    background:var(--green-dim); border:1px solid rgba(52,211,153,0.2);
+    font-size:12px; color:var(--green);
+  }
+  .fastest-path strong { color:#6ee7b7; }
+  .richness { text-align:right; font-size:11px; color:var(--text-muted); margin-top:8px; font-family:'JetBrains Mono',monospace; }
+
+  /* Footer */
+  .footer { 
+    background:var(--surface); border-top:1px solid var(--border);
+    padding:10px 24px; text-align:center; font-size:11px; color:var(--text-muted);
+  }
+  .footer a { color:var(--accent); text-decoration:none; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border-light); border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:var(--text-muted); }
+
+  /* Responsive */
+  @media (max-width:900px) {
+    .main { flex-direction:column; height:auto; }
+    .left, .right { width:100%; }
+    .left { border-right:none; border-bottom:1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState } = React;
+
+const cases = [
+  {
+    id:"1321207", label:"Brighton L4", badge:"UNCLASSIFIABLE", badgeClass:"badge-unclass",
+    risk:"MEDIUM", riskColor:"var(--amber)",
+    vaers:{ age:"18",sex:"M",state:"California", vaccine:"BNT162b2 (Pfizer-BioNTech)",dose:"Unknown",
+      onset:"5 days", symptoms:["Chest pain","Angina pectoris"],
+      narrative:"Gave me heart and chest pain (diagnosed with myocarditis)",
+      history:"None reported", meds:"None reported"
+    },
+    stages:[
+      {num:1,title:"ICSR Extraction",status:"warn",detail:"Minimal clinical data extracted: chest pain and myocarditis diagnosis only. No biomarkers, imaging, or ECG documented."},
+      {num:2,title:"Brighton Validation",status:"fail",badge:"L4",detail:"Compatible symptoms only. No troponin, no ECG, no imaging. Insufficient evidence for certainty above Level 4."},
+      {num:3,title:"Differential Diagnosis",status:"skip",detail:"Bypassed — Brighton L4 early exit. Insufficient diagnostic data for alternative etiology evaluation."},
+      {num:4,title:"Auditor",status:"skip",detail:"Bypassed — Brighton L4 early exit."},
+      {num:5,title:"WHO Classification",status:"fail",category:"Unclassifiable",detail:"Brighton L4 → early exit. Cannot proceed without minimum diagnostic evidence.",path:"Brighton L4 → Early Exit → Stage 6"}
+    ],
+    s6:{
+      summary:"Young male with post-vaccination chest pain diagnosed as myocarditis but lacks any objective cardiac testing. Basic troponin and ECG could rapidly upgrade this to Level 2–3 classification.",
+      gaps:[
+        {priority:"CRITICAL",item:"High-sensitivity troponin I or T",reason:"Essential biomarker for myocardial injury confirmation",action:"Order hs-troponin I with serial measurements"},
+        {priority:"CRITICAL",item:"12-lead ECG",reason:"Identifies ST-T changes and conduction abnormalities",action:"Obtain 12-lead ECG and continuous telemetry monitoring"},
+        {priority:"HIGH",item:"Transthoracic echocardiogram",reason:"Assesses wall motion and ejection fraction",action:"Schedule TTE for structural assessment"}
+      ],
+      fastestPath:"Brighton Level 2 — requires hs-troponin + 12-lead ECG + echocardiogram",
+      richness:"3/10"
+    }
+  },
+  {
+    id:"1549179", label:"WHO A1", badge:"A1", badgeClass:"badge-a1",
+    risk:"HIGH", riskColor:"var(--red)",
+    vaers:{ age:"14",sex:"M",state:"Pennsylvania", vaccine:"BNT162b2 (Pfizer-BioNTech)",dose:"Dose 2",
+      onset:"3 days", symptoms:["Stabbing chest pain","Troponin elevated","Myocarditis"],
+      narrative:"3 days after 2nd vaccine my son had stabbing chest pain. He was transported by ambulance from a local ER to hospital with high troponin levels. He was diagnosed with Myocarditis from the vaccine.",
+      history:"Asthma", meds:"Zyrtec"
+    },
+    stages:[
+      {num:1,title:"ICSR Extraction",status:"pass",detail:"Complete demographics, vaccine info (Dose 2), onset (3d), troponin elevation, ambulance transport, hospitalization, and myocarditis diagnosis extracted."},
+      {num:2,title:"Brighton Validation",status:"pass",badge:"L1",detail:"CMR positive + troponin elevated + ECG abnormal + echo abnormal + compatible symptoms. Highest diagnostic certainty."},
+      {num:3,title:"Differential Diagnosis",status:"pass",nci:"0.0",detail:"No alternative etiology identified. No competing diagnosis markers found."},
+      {num:4,title:"Auditor",status:"pass",detail:"Known AE: ESTABLISHED (mRNA + myocarditis per NAM 2024). Temporal zone: STRONG_CAUSAL (3 days, ≤7d window)."},
+      {num:5,title:"WHO Classification",status:"pass",category:"A1",detail:"Vaccine product-related. Valid dx → no definite other cause → known AE → temporal met → no conflicting alt → A1.",path:"Q1→Q2→Q3→Q4→Q5→A1"}
+    ],
+    s6:{
+      summary:"14-year-old male developed Brighton Level 1 myocarditis 3 days after second Pfizer vaccine, meeting A1 classification criteria with strong temporal relationship. Missing viral testing data represents only minor gap.",
+      gaps:[
+        {priority:"MEDIUM",item:"Viral testing status unknown",reason:"Cannot exclude viral etiology without testing",action:"Obtain viral PCR/serology results if performed"},
+        {priority:"MEDIUM",item:"Cardiac MRI details",reason:"MRI performed but findings not detailed",action:"Request MRI report for inflammation extent"},
+        {priority:"LOW",item:"Inflammatory markers (CRP/ESR, BNP)",reason:"Complete laboratory panel missing",action:"Obtain if available"}
+      ],
+      fastestPath:null, richness:"7/10"
+    }
+  },
+  {
+    id:"1430395", label:"WHO B2", badge:"B2", badgeClass:"badge-b2",
+    risk:"MEDIUM", riskColor:"var(--amber)",
+    vaers:{ age:"14",sex:"M",state:"Not specified", vaccine:"BNT162b2 (Pfizer-BioNTech)",dose:"Dose 2",
+      onset:"3 days", symptoms:["SOB","Chest pain","Troponin 2.1 ng/mL","ECG ST elevation"],
+      narrative:"Developed shortness of breath and chest pain 3 days after second dose. Troponin 2.1 ng/mL, ECG with inferior ST elevation. Had viral illness (cough, fatigue, diarrhea) between doses.",
+      history:"Viral illness between doses", meds:"Not reported"
+    },
+    stages:[
+      {num:1,title:"ICSR Extraction",status:"pass",detail:"Demographics, Dose 2, 3-day onset, troponin 2.1 ng/mL, ECG ST elevation, and inter-dose viral illness extracted."},
+      {num:2,title:"Brighton Validation",status:"pass",badge:"L2",detail:"Troponin elevated + ECG abnormal + compatible symptoms. No imaging documented."},
+      {num:3,title:"Differential Diagnosis",status:"warn",nci:"0.4",detail:"Viral myocarditis (infectious) identified as competing etiology. Prodromal viral illness between doses. max_nci = 0.4 (moderate)."},
+      {num:4,title:"Auditor",status:"pass",detail:"Known AE: ESTABLISHED (mRNA + myocarditis). Temporal zone: STRONG_CAUSAL (3d, ≤7d window)."},
+      {num:5,title:"WHO Classification",status:"warn",category:"B2",detail:"Indeterminate — conflicting evidence. Temporal relationship supports vaccine, but NCI 0.4 indicates moderate alternative etiology evidence.",path:"Q1→Q2→Q3→Q4→Q5 conflicting (0.4)→B2"}
+    ],
+    s6:{
+      summary:"Temporal association supports vaccine causation, but inter-dose viral illness creates diagnostic ambiguity. Targeted viral testing could resolve B2 → A1 (if negative) or B2 → C (if positive).",
+      gaps:[
+        {priority:"HIGH",item:"Comprehensive viral panel",reason:"Resolve competing viral vs. vaccine etiology",action:"Order PCR + paired serology for cardiotropic viruses"},
+        {priority:"HIGH",item:"Cardiac MRI",reason:"Confirm inflammation extent and pattern",action:"CMR to differentiate viral vs. vaccine myocarditis"},
+        {priority:"MEDIUM",item:"Convalescent serology",reason:"Confirm or exclude acute viral infection",action:"Paired titers 2–4 weeks post-acute"}
+      ],
+      fastestPath:"Viral PCR negative → reclassify B2 → A1", richness:"6/10"
+    }
+  },
+  {
+    id:"1263276", label:"WHO C", badge:"C", badgeClass:"badge-c",
+    risk:"LOW", riskColor:"var(--accent)",
+    vaers:{ age:"29",sex:"M",state:"Not specified", vaccine:"BNT162b2 (Pfizer-BioNTech)",dose:"Dose 2",
+      onset:"50 days", symptoms:["CHF","Myocarditis","Non-sustained VT","Troponin elevated"],
+      narrative:"Admitted with congestive heart failure, myocarditis, and non-sustained ventricular tachycardia 50 days after second dose. Cardiac MRI positive for myocarditis. Troponin elevated.",
+      history:"Not reported", meds:"Not reported"
+    },
+    stages:[
+      {num:1,title:"ICSR Extraction",status:"pass",detail:"Demographics, Dose 2, 50-day onset, CHF, VT, cardiac MRI positive, troponin elevation extracted."},
+      {num:2,title:"Brighton Validation",status:"pass",badge:"L1",detail:"CMR positive + troponin elevated + compatible symptoms. High diagnostic certainty despite late onset."},
+      {num:3,title:"Differential Diagnosis",status:"fail",nci:"1.0",detail:"Giant cell myocarditis identified as dominant alternative. Severe presentation (CHF + VT) atypical for vaccine myocarditis. max_nci = 1.0 (definite)."},
+      {num:4,title:"Auditor",status:"fail",detail:"Known AE: ESTABLISHED (mRNA + myocarditis). Temporal zone: UNLIKELY (50 days, >42d window)."},
+      {num:5,title:"WHO Classification",status:"pass",category:"C",detail:"Coincidental — two independent drivers: definite alternative etiology (NCI=1.0, GCM) AND temporal zone UNLIKELY (50d).",path:"Q1→Q2 definite alt (NCI 1.0)→C"}
+    ],
+    s6:{
+      summary:"Severe presentation with CHF and VT 50 days post-vaccination strongly suggests giant cell myocarditis rather than vaccine-associated myocarditis. URGENT escalation — GCM carries >70% mortality without immunosuppression.",
+      gaps:[
+        {priority:"CRITICAL",item:"Endomyocardial biopsy",reason:"Definitive GCM diagnosis — >70% mortality without immunosuppression",action:"URGENT: Recommend EMB if clinical deterioration"},
+        {priority:"HIGH",item:"Verify symptom onset date",reason:"50-day onset is atypical; confirm with reporter",action:"Contact reporter to verify actual onset timeline"},
+        {priority:"MEDIUM",item:"Autoimmune panel",reason:"GCM association with autoimmune conditions",action:"ANA, anti-heart antibodies if not performed"}
+      ],
+      fastestPath:null, richness:"7/10"
+    }
+  }
+];
+
+const statusIcon = {pass:"✓",warn:"⚠",fail:"✗",skip:"—"};
+
+function App() {
+  const [sel, setSel] = useState(0);
+  const [exp, setExp] = useState({2:true,3:true,5:true});
+  const c = cases[sel];
+  const toggle = n => setExp(p=>({...p,[n]:!p[n]}));
+  const selectCase = i => { setSel(i); setExp({2:true,3:true,5:true}); };
+
+  return (
+    <>
+      <div className="header">
+        <div className="header-left">
+          <div className="logo">VAX<span>-</span>BEACON</div>
+          <div className="header-tag">Case Report Viewer</div>
+        </div>
+        <div className="header-right">Neuro-Symbolic AEFI Pipeline &nbsp;|&nbsp; <a href="https://github.com/SuahCheon/vax-beacon" target="_blank">GitHub</a></div>
+      </div>
+
+      <div className="tabs">
+        {cases.map((cs,i)=>(
+          <button key={cs.id} className={`tab ${sel===i?'active':''}`} onClick={()=>selectCase(i)}>
+            <span className="mono" style={{fontSize:12}}>#{cs.id}</span>
+            <span className={`tab-badge ${cs.badgeClass}`}>{cs.badge}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="main">
+        <div className="left">
+          <div className="panel-header vaers">▣ VAERS Original Report</div>
+          <div className="panel-body">
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+              <div className="case-id">#{c.id}</div>
+              <div className={`who-badge ${c.badgeClass}`} style={{fontSize:14}}>{c.badge}</div>
+            </div>
+            <div className="info-grid">
+              <div className="info-cell"><div className="info-label">Patient</div><div className="info-value">{c.vaers.age}y / {c.vaers.sex}</div></div>
+              <div className="info-cell"><div className="info-label">Location</div><div className="info-value">{c.vaers.state}</div></div>
+              <div className="info-cell"><div className="info-label">Vaccine</div><div className="info-value" style={{fontSize:12}}>{c.vaers.vaccine}</div></div>
+              <div className="info-cell"><div className="info-label">Dose</div><div className="info-value">{c.vaers.dose}</div></div>
+              <div className="info-cell"><div className="info-label">Onset</div><div className="info-value">{c.vaers.onset}</div></div>
+              <div className="info-cell"><div className="info-label">Risk Signal</div><div className="info-value" style={{color:c.riskColor,fontWeight:700}}>{c.risk}</div></div>
+            </div>
+            <div className="section-label">Reported Symptoms</div>
+            <div className="symptom-tags">
+              {c.vaers.symptoms.map((s,i)=><span key={i} className="symptom-tag">{s}</span>)}
+            </div>
+            <div className="section-label">Original Narrative</div>
+            <div className="narrative-box">"{c.vaers.narrative}"</div>
+            <div className="info-grid" style={{marginTop:12}}>
+              <div><div className="section-label">Medical History</div><div style={{fontSize:13,color:'var(--text-dim)'}}>{c.vaers.history}</div></div>
+              <div><div className="section-label">Medications</div><div style={{fontSize:13,color:'var(--text-dim)'}}>{c.vaers.meds}</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="right">
+          <div className="panel-header pipeline">◈ Vax-Beacon Pipeline Output</div>
+          <div style={{padding:20}}>
+            {c.stages.map(s=>(
+              <div className="stage-card" key={s.num}>
+                <div className="stage-header" onClick={()=>toggle(s.num)}>
+                  <div className="stage-left">
+                    <span className={`status-${s.status}`} style={{fontWeight:700,fontSize:14}}>{statusIcon[s.status]}</span>
+                    <span className="stage-num mono">S{s.num}</span>
+                    <span className="stage-name">{s.title}</span>
+                    <div className="stage-badges">
+                      {s.badge && <span className="stage-badge" style={{background:'var(--surface2)',color:'var(--text-dim)'}}>{s.badge}</span>}
+                      {s.category && <span className="stage-badge" style={{background:'var(--text)',color:'var(--bg)'}}>{s.category}</span>}
+                      {s.nci && <span className="stage-badge" style={{background:'rgba(167,139,250,0.15)',color:'var(--purple)'}}>NCI {s.nci}</span>}
+                    </div>
+                  </div>
+                  <span className={`chevron ${exp[s.num]?'open':''}`}>▼</span>
+                </div>
+                {exp[s.num] && (
+                  <div className="stage-detail">
+                    {s.detail}
+                    {s.path && <div className="stage-path">{s.path}</div>}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            <div className="guidance">
+              <div className="guidance-title">📋 Officer Summary</div>
+              <div className="officer-summary">{c.s6.summary}</div>
+              <div className="gaps-title">Investigation Gaps</div>
+              {c.s6.gaps.map((g,i)=>(
+                <div className="gap-card" key={i}>
+                  <div className="gap-header">
+                    <span className={`gap-priority priority-${g.priority}`}>{g.priority}</span>
+                    <div>
+                      <div className="gap-item">{g.item}</div>
+                      <div className="gap-reason">{g.reason}</div>
+                      <div className="gap-action">→ {g.action}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {c.s6.fastestPath && (
+                <div className="fastest-path"><strong>Fastest Path: </strong>{c.s6.fastestPath}</div>
+              )}
+              <div className="richness">Data Richness: {c.s6.richness}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="footer">
+        Vax-Beacon v4 &nbsp;|&nbsp; Neuro-Symbolic AEFI Causality Pipeline &nbsp;|&nbsp;
+        <a href="https://github.com/SuahCheon/vax-beacon" target="_blank">github.com/SuahCheon/vax-beacon</a>
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('app')).render(<App/>);
+</script>
+</body>
+</html>

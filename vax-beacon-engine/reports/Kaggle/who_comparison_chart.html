@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { 
+  font-family: Arial, sans-serif; 
+  background: white; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  min-height: 100vh;
+  padding: 20px;
+}
+.container {
+  width: 900px;
+  background: white;
+  padding: 40px;
+}
+h1 {
+  color: #1B3A5C;
+  font-size: 22px;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.subtitle {
+  color: #666;
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 30px;
+}
+.chart-area {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 50px;
+  height: 320px;
+  border-bottom: 2px solid #ddd;
+  padding: 0 20px;
+  margin-bottom: 8px;
+  position: relative;
+}
+/* Y-axis labels */
+.chart-area::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+}
+.y-axis {
+  position: absolute;
+  left: 10px;
+  bottom: 0;
+  height: 320px;
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #999;
+}
+.gridlines {
+  position: absolute;
+  left: 40px;
+  right: 20px;
+  bottom: 0;
+  height: 320px;
+}
+.gridline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed #eee;
+}
+.group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
+.bar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.bar {
+  width: 52px;
+  border-radius: 4px 4px 0 0;
+  transition: all 0.3s;
+  position: relative;
+  min-height: 2px;
+}
+.bar-label {
+  font-size: 13px;
+  font-weight: bold;
+  color: #333;
+  text-align: center;
+}
+.bar-claude { background: #2E75B6; }
+.bar-medgemma { background: #E67E22; }
+.cat-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1B3A5C;
+  margin-top: 8px;
+}
+.cat-desc {
+  font-size: 10px;
+  color: #888;
+}
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 24px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #333;
+}
+.legend-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+}
+.metrics-row {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.metric-card {
+  background: #F8F9FA;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  padding: 12px 18px;
+  text-align: center;
+  min-width: 130px;
+}
+.metric-value {
+  font-size: 22px;
+  font-weight: bold;
+  color: #1B3A5C;
+}
+.metric-label {
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
+}
+.footnote {
+  text-align: center;
+  font-size: 11px;
+  color: #999;
+  margin-top: 20px;
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>WHO AEFI Causality Classification: Claude Sonnet vs MedGemma 4B</h1>
+  <p class="subtitle">N=100 VAERS Benchmark (90 Myocarditis, 10 Pericarditis) · 2021 Cohort</p>
+
+  <div style="position: relative; height: 320px; margin: 0 40px;">
+    <!-- Gridlines -->
+    <div class="gridlines">
+      <div class="gridline" style="bottom: 0%;"></div>
+      <div class="gridline" style="bottom: 20%;"></div>
+      <div class="gridline" style="bottom: 40%;"></div>
+      <div class="gridline" style="bottom: 60%;"></div>
+      <div class="gridline" style="bottom: 80%;"></div>
+      <div class="gridline" style="bottom: 100%;"></div>
+    </div>
+    <!-- Y-axis -->
+    <div class="y-axis">
+      <span>0</span>
+      <span>10</span>
+      <span>20</span>
+      <span>30</span>
+      <span>40</span>
+      <span>50</span>
+    </div>
+
+    <div style="display: flex; align-items: flex-end; justify-content: center; gap: 50px; height: 100%; padding-left: 40px;">
+      <!-- A1 -->
+      <div class="group">
+        <div class="bars">
+          <div class="bar-wrapper">
+            <div class="bar-label">43</div>
+            <div class="bar bar-claude" style="height: 275px;"></div>
+          </div>
+          <div class="bar-wrapper">
+            <div class="bar-label">21</div>
+            <div class="bar bar-medgemma" style="height: 134px;"></div>
+          </div>
+        </div>
+      </div>
+      <!-- B2 -->
+      <div class="group">
+        <div class="bars">
+          <div class="bar-wrapper">
+            <div class="bar-label">5</div>
+            <div class="bar bar-claude" style="height: 32px;"></div>
+          </div>
+          <div class="bar-wrapper">
+            <div class="bar-label">9</div>
+            <div class="bar bar-medgemma" style="height: 58px;"></div>
+          </div>
+        </div>
+      </div>
+      <!-- C -->
+      <div class="group">
+        <div class="bars">
+          <div class="bar-wrapper">
+            <div class="bar-label">27</div>
+            <div class="bar bar-claude" style="height: 173px;"></div>
+          </div>
+          <div class="bar-wrapper">
+            <div class="bar-label">21</div>
+            <div class="bar bar-medgemma" style="height: 134px;"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Unclassifiable -->
+      <div class="group">
+        <div class="bars">
+          <div class="bar-wrapper">
+            <div class="bar-label">25</div>
+            <div class="bar bar-claude" style="height: 160px;"></div>
+          </div>
+          <div class="bar-wrapper">
+            <div class="bar-label">47</div>
+            <div class="bar bar-medgemma" style="height: 301px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- X-axis labels -->
+  <div style="display: flex; justify-content: center; gap: 50px; padding-left: 40px; margin: 0 40px;">
+    <div style="width: 110px; text-align: center;">
+      <div class="cat-label">A1</div>
+      <div class="cat-desc">Vaccine-associated</div>
+    </div>
+    <div style="width: 110px; text-align: center;">
+      <div class="cat-label">B2</div>
+      <div class="cat-desc">Indeterminate</div>
+    </div>
+    <div style="width: 110px; text-align: center;">
+      <div class="cat-label">C</div>
+      <div class="cat-desc">Coincidental</div>
+    </div>
+    <div style="width: 110px; text-align: center;">
+      <div class="cat-label">Unclassifiable</div>
+      <div class="cat-desc">Insufficient data</div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-box" style="background: #2E75B6;"></div> Claude Sonnet 3.5 (Baseline, N=100)</div>
+    <div class="legend-item"><div class="legend-box" style="background: #E67E22;"></div> MedGemma 4B Hybrid (N=98)</div>
+  </div>
+
+  <div class="metrics-row">
+    <div class="metric-card">
+      <div class="metric-value">4/4</div>
+      <div class="metric-label">Showcase Accuracy</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">54.1%</div>
+      <div class="metric-label">Baseline Concordance</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">98%</div>
+      <div class="metric-label">Pipeline Completion</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">100%</div>
+      <div class="metric-label">Decision Reproducibility</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">100%</div>
+      <div class="metric-label">Guidance Generation</div>
+    </div>
+  </div>
+
+  <p class="footnote">Divergence driven by keyword extraction limitations in 4-bit quantized model · Deterministic decision logic identical across both backends</p>
+</div>
+</body>
+</html>

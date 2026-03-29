@@ -1,1 +1,0 @@
-# Vax-Beacon System Prompts

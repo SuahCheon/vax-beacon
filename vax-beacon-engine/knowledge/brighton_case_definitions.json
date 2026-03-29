@@ -1,0 +1,253 @@
+{
+  "version": "1.0",
+  "source": "Brighton Collaboration Case Definitions for Myocarditis and Pericarditis",
+  "reference": "Brighton Collaboration Myocarditis/Pericarditis Working Group. Vaccine. 2004;22(5-6):551-562.",
+  "scope": "Diagnostic certainty levels for post-vaccination myocarditis and pericarditis in passive surveillance (VAERS).",
+  "note": "Used in Vax-Beacon Stage 2 (deterministic gatekeeper) and Stage 6 (Brighton L4 early exit guidance).",
+
+  "conditions": {
+
+    "myocarditis": {
+      "label": "Myocarditis",
+      "definition": "Inflammation of the myocardium (heart muscle), diagnosed by clinical, laboratory, imaging, or histopathological evidence.",
+      "icd10": ["I40", "I40.0", "I40.1", "I40.8", "I40.9", "I51.4"],
+
+      "diagnostic_criteria": {
+        "histopathology": {
+          "label": "Histopathological confirmation (EMB)",
+          "description": "Endomyocardial biopsy showing inflammatory infiltrate with myocyte necrosis or damage, per Dallas criteria. Requires multinucleated giant cells for giant cell myocarditis.",
+          "tests": ["Endomyocardial biopsy (EMB)", "Dallas criteria assessment", "Immunohistochemistry"],
+          "keywords": ["biopsy", "endomyocardial biopsy", "EMB", "histopathology", "Dallas criteria", "inflammatory infiltrate", "myocyte necrosis", "giant cells"],
+          "is_standalone_level1": true
+        },
+        "cardiac_mri_positive": {
+          "label": "Cardiac MRI positive (Lake Louise criteria)",
+          "description": "Cardiac MRI demonstrating myocardial inflammation per Lake Louise criteria: T2 edema AND late gadolinium enhancement (LGE) in a non-ischemic pattern.",
+          "tests": ["Cardiac MRI with T2 mapping", "Late gadolinium enhancement (LGE)", "T2-weighted imaging", "Lake Louise criteria assessment"],
+          "keywords": ["cardiac MRI", "CMR", "cardiac magnetic resonance", "LGE", "late gadolinium enhancement", "T2 edema", "T2 mapping", "Lake Louise", "myocardial enhancement", "focal enhancement"],
+          "lge_patterns": {
+            "focal_punctate": "Mid-wall or epicardial — consistent with vaccine-associated myocarditis (Nordic Study pattern)",
+            "diffuse": "Diffuse mid-wall — suggests viral or systemic etiology (GCM, viral myocarditis)",
+            "subendocardial": "Subendocardial — suggests ischemic etiology; requires coronary workup"
+          }
+        },
+        "troponin_elevated": {
+          "label": "Elevated cardiac troponin",
+          "description": "Troponin I or T above the 99th percentile upper reference limit (URL), indicating myocardial injury.",
+          "tests": ["High-sensitivity troponin I (hs-TnI)", "High-sensitivity troponin T (hs-TnT)", "Serial troponin measurements", "Troponin peak value"],
+          "keywords": ["troponin", "troponin I", "troponin T", "hs-TnI", "hs-TnT", "cardiac troponin", "troponin elevated", "troponin positive", "myocardial injury marker"],
+          "threshold": "Above 99th percentile upper reference limit (URL)"
+        },
+        "ecg_abnormal": {
+          "label": "ECG abnormalities",
+          "description": "New electrocardiographic abnormalities consistent with myocarditis: ST-T changes, conduction abnormalities (AV block, bundle branch block), or arrhythmias.",
+          "tests": ["12-lead ECG", "Serial ECGs", "Continuous cardiac monitoring/telemetry", "Holter monitor"],
+          "keywords": ["ECG", "electrocardiogram", "ST elevation", "ST changes", "ST segment", "T wave changes", "T wave inversion", "AV block", "bundle branch block", "arrhythmia", "conduction abnormality", "PR prolongation", "QRS widening"],
+          "note": "Diffuse ST elevation with PR depression suggests pericarditis; focal/territorial ST changes suggest ischemia."
+        },
+        "echo_abnormal": {
+          "label": "Echocardiographic abnormalities",
+          "description": "New echocardiographic findings: wall motion abnormalities, reduced ejection fraction (EF), or diastolic dysfunction not explained by prior disease.",
+          "tests": ["Transthoracic echocardiogram (TTE)", "Transesophageal echocardiogram (TEE)", "Point-of-care ultrasound (POCUS)", "Strain imaging"],
+          "keywords": ["echocardiogram", "echo", "TTE", "ejection fraction", "EF", "LVEF", "wall motion abnormality", "systolic dysfunction", "diastolic dysfunction", "reduced EF", "hypokinesis", "akinesis"],
+          "ef_thresholds": {
+            "normal": ">=55%",
+            "mildly_reduced": "45-54%",
+            "moderately_reduced": "35-44%",
+            "severely_reduced": "<35%"
+          }
+        },
+        "compatible_symptoms": {
+          "label": "Compatible clinical symptoms",
+          "description": "Symptoms consistent with myocarditis: chest pain, dyspnea, palpitations, syncope, or signs of heart failure in the absence of an alternative explanation.",
+          "symptoms": ["chest pain", "dyspnea", "shortness of breath", "palpitations", "syncope", "presyncope", "fatigue", "reduced exercise tolerance", "heart failure symptoms"],
+          "keywords": ["chest pain", "chest tightness", "dyspnea", "shortness of breath", "palpitations", "syncope", "heart failure", "cardiac symptoms", "pleuritic pain"]
+        }
+      },
+
+      "brighton_levels": {
+        "level_1": {
+          "label": "Level 1 — Confirmed",
+          "certainty": "Highest diagnostic certainty",
+          "criteria": [
+            "Histopathological confirmation (EMB with Dallas criteria)",
+            "OR: Cardiac MRI positive (Lake Louise) AND troponin elevated AND compatible symptoms"
+          ],
+          "clinical_interpretation": "Definitive diagnosis. Strongest evidence for pharmacovigilance signal."
+        },
+        "level_2": {
+          "label": "Level 2 — Probable",
+          "certainty": "High diagnostic certainty",
+          "criteria": [
+            "Troponin elevated AND compatible symptoms AND ≥1 of: (abnormal ECG, abnormal echo, positive MRI)"
+          ],
+          "clinical_interpretation": "High probability. Troponin elevation is required — differentiates from pure pericarditis."
+        },
+        "level_3": {
+          "label": "Level 3 — Possible",
+          "certainty": "Moderate diagnostic certainty",
+          "criteria": [
+            "Compatible symptoms AND (troponin elevated OR ≥1 abnormal imaging finding)"
+          ],
+          "clinical_interpretation": "Plausible. Incomplete workup or mild presentation."
+        },
+        "level_4": {
+          "label": "Level 4 — Insufficient evidence",
+          "certainty": "Cannot be classified",
+          "criteria": [
+            "Reported as myocarditis but insufficient documented evidence for Level 1–3"
+          ],
+          "clinical_interpretation": "Passive surveillance limitation. Missing diagnostic data — not a clinical exclusion.",
+          "vax_beacon_action": "Brighton L4 early exit → Stage 6 directly. Provide structured missing-criteria guidance.",
+          "missing_criteria_to_upgrade": [
+            "troponin_elevated — most common missing criterion in VAERS (order hs-TnI/T)",
+            "cardiac_mri_positive — highest upgrade potential (Lake Louise criteria)",
+            "ecg_abnormal — often not documented in VAERS reports",
+            "echo_abnormal — transthoracic echo frequently absent in VAERS",
+            "histopathology — invasive; rarely indicated in stable patients"
+          ]
+        }
+      },
+
+      "investigations_by_gap": {
+        "troponin_missing": {
+          "priority": "CRITICAL",
+          "tests": ["High-sensitivity troponin I or T", "Serial troponin (0h, 3h, 6h if initial borderline)"],
+          "rationale": "Required for Brighton Level 1–2; supports Level 3. Most commonly missing criterion in VAERS."
+        },
+        "cardiac_mri_missing": {
+          "priority": "HIGH",
+          "tests": ["Cardiac MRI with T2 mapping and LGE protocol"],
+          "rationale": "Enables upgrade to Level 1 (with troponin + symptoms). Differentiates VAM from alternative etiologies by LGE pattern."
+        },
+        "ecg_missing": {
+          "priority": "HIGH",
+          "tests": ["12-lead ECG", "Serial ECGs if initial normal"],
+          "rationale": "Supports Level 2 (with troponin + symptoms). Documents conduction abnormalities."
+        },
+        "echo_missing": {
+          "priority": "MEDIUM",
+          "tests": ["Transthoracic echocardiogram (TTE)"],
+          "rationale": "Supports Level 2 (with troponin + symptoms). Assesses ventricular function and effusion."
+        }
+      }
+    },
+
+    "pericarditis": {
+      "label": "Pericarditis",
+      "definition": "Inflammation of the pericardium (fibrous sac surrounding the heart), diagnosed by clinical, laboratory, and imaging criteria.",
+      "icd10": ["I30", "I30.0", "I30.1", "I30.8", "I30.9"],
+
+      "diagnostic_criteria": {
+        "compatible_symptoms": {
+          "label": "Compatible pericarditis symptoms",
+          "description": "Chest pain that is sharp, pleuritic (worsened by inspiration), and positional (relieved by sitting forward). Pericardial friction rub on auscultation.",
+          "symptoms": ["pleuritic chest pain", "positional chest pain", "sharp chest pain", "pericardial friction rub", "chest pain worsened by inspiration"],
+          "keywords": ["chest pain", "pleuritic", "positional chest pain", "pericardial rub", "friction rub", "sharp chest pain", "pericarditis symptoms"]
+        },
+        "ecg_abnormal": {
+          "label": "ECG changes (pericarditis pattern)",
+          "description": "New diffuse ST elevation (saddle-shaped, in multiple leads without territorial pattern) and/or PR segment depression. Distinguished from STEMI by diffuse distribution.",
+          "tests": ["12-lead ECG", "Serial ECGs"],
+          "keywords": ["diffuse ST elevation", "PR depression", "saddle-shaped ST", "ECG changes", "pericarditis ECG pattern", "PR segment depression"],
+          "note": "Diffuse (multi-lead) ST elevation differentiates from ischemic territorial ST elevation."
+        },
+        "pericardial_effusion": {
+          "label": "Pericardial effusion",
+          "description": "Pericardial fluid collection demonstrated by echocardiography or cardiac MRI.",
+          "tests": ["Transthoracic echocardiogram (TTE)", "Cardiac MRI", "Point-of-care ultrasound"],
+          "keywords": ["pericardial effusion", "pericardial fluid", "effusion", "echo effusion", "fluid around heart", "pericardial collection"]
+        },
+        "inflammatory_markers_elevated": {
+          "label": "Elevated inflammatory markers",
+          "description": "CRP, ESR, or other inflammatory markers elevated above normal range, supporting active pericardial inflammation.",
+          "tests": ["C-reactive protein (CRP)", "Erythrocyte sedimentation rate (ESR)", "CBC with differential", "WBC count"],
+          "keywords": ["CRP", "C-reactive protein", "ESR", "erythrocyte sedimentation rate", "inflammatory markers", "elevated CRP", "elevated ESR", "WBC elevated", "leukocytosis"]
+        }
+      },
+
+      "brighton_levels": {
+        "level_1": {
+          "label": "Level 1 — Confirmed",
+          "certainty": "Highest diagnostic certainty",
+          "criteria": [
+            "≥2 of: (compatible symptoms, ECG changes, pericardial effusion)"
+          ],
+          "clinical_interpretation": "Classic pericarditis presentation with ≥2 objective criteria."
+        },
+        "level_2": {
+          "label": "Level 2 — Probable",
+          "certainty": "High diagnostic certainty",
+          "criteria": [
+            "≥1 pericarditis criterion AND elevated inflammatory markers (CRP/ESR)"
+          ],
+          "clinical_interpretation": "Single criterion with laboratory support for inflammation."
+        },
+        "level_3": {
+          "label": "Level 3 — Possible",
+          "certainty": "Moderate diagnostic certainty",
+          "criteria": [
+            "≥1 pericarditis criterion without inflammatory marker data"
+          ],
+          "clinical_interpretation": "Plausible but incomplete. Inflammatory marker data could confirm."
+        },
+        "level_4": {
+          "label": "Level 4 — Insufficient evidence",
+          "certainty": "Cannot be classified",
+          "criteria": [
+            "Reported as pericarditis but insufficient documented evidence for Level 1–3"
+          ],
+          "clinical_interpretation": "Passive surveillance limitation. Obtain missing diagnostic data.",
+          "vax_beacon_action": "Brighton L4 early exit → Stage 6 directly. Provide structured missing-criteria guidance.",
+          "missing_criteria_to_upgrade": [
+            "compatible_symptoms — chest pain character (pleuritic/positional) often underdocumented",
+            "ecg_abnormal — diffuse ST elevation / PR depression pattern",
+            "pericardial_effusion — echocardiogram frequently absent in VAERS",
+            "inflammatory_markers_elevated — CRP/ESR rarely included in VAERS reports"
+          ]
+        }
+      },
+
+      "investigations_by_gap": {
+        "ecg_missing": {
+          "priority": "HIGH",
+          "tests": ["12-lead ECG", "Serial ECGs"],
+          "rationale": "Diffuse ST elevation + PR depression is pathognomonic for pericarditis. Supports Level 1 (with symptoms + effusion)."
+        },
+        "echo_missing": {
+          "priority": "HIGH",
+          "tests": ["Transthoracic echocardiogram (TTE)"],
+          "rationale": "Detects pericardial effusion (Brighton criterion). Also excludes myocarditis component."
+        },
+        "inflammatory_markers_missing": {
+          "priority": "MEDIUM",
+          "tests": ["CRP", "ESR", "CBC with differential"],
+          "rationale": "Supports Level 2 (with 1 core criterion). Monitors treatment response."
+        },
+        "symptoms_undocumented": {
+          "priority": "MEDIUM",
+          "tests": ["Structured symptom review", "Contact reporter for pleuritic/positional pain history"],
+          "rationale": "Pleuritic/positional character is a Brighton criterion. Often absent in VAERS free-text."
+        }
+      }
+    }
+  },
+
+  "shared_concepts": {
+    "passive_surveillance_context": {
+      "description": "Brighton Level 4 in VAERS does not indicate the patient does not have myocarditis/pericarditis. It reflects the data limitations of passive surveillance systems where complete diagnostic workups are rarely documented.",
+      "implication": "Obtaining missing diagnostic data (medical records, follow-up) can upgrade a Level 4 case to Level 1–3."
+    },
+    "myopericarditis": {
+      "description": "Combined myocardial and pericardial involvement. Characterized by pericarditis features (pleuritic chest pain, pericardial effusion, PR depression) plus myocardial injury markers (elevated troponin).",
+      "keywords": ["myopericarditis", "perimyocarditis", "combined myocarditis pericarditis"],
+      "classification": "Apply both myocarditis AND pericarditis criteria; use the higher-certainty level achieved."
+    },
+    "vaccine_associated_myocarditis_signal": {
+      "description": "Post-mRNA COVID-19 vaccine myocarditis signal established July 2021 (WHO GACVS). Predominantly young males, after second dose, typically mild and self-limited. LGE pattern: focal/punctate mid-wall (Nordic Study).",
+      "keywords": ["vaccine-associated myocarditis", "mRNA vaccine", "post-vaccination myocarditis", "VAM", "COVID-19 vaccine myocarditis"],
+      "temporal_window": "Most cases within 7 days of vaccination (NAM 2024: 1–7 days, especially 1–4 days post-dose 2)",
+      "demographic_signal": "Young males (12–29 years), dose 2 > dose 1, mRNA vaccines (Pfizer-BioNTech, Moderna)"
+    }
+  }
+}

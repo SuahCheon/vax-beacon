@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #f0f0f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+.card {
+  width: 1120px;
+  height: 560px;
+  background: linear-gradient(135deg, #0D1B2A 0%, #1B3A5C 50%, #2E75B6 100%);
+  display: flex;
+  flex-direction: column;
+  padding: 40px 50px;
+  position: relative;
+  overflow: hidden;
+}
+/* Decorative circles */
+.card::before {
+  content: '';
+  position: absolute;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.06);
+  top: -100px; right: -50px;
+}
+.card::after {
+  content: '';
+  position: absolute;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.04);
+  bottom: -60px; left: 100px;
+}
+
+.top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+.title-area { flex: 1; }
+.badge {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 12px;
+  color: #8ECAE6;
+  letter-spacing: 0.5px;
+}
+h1 {
+  font-family: Arial, sans-serif;
+  font-size: 36px;
+  color: white;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 8px;
+}
+.subtitle {
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  color: #8ECAE6;
+  margin-top: 6px;
+}
+
+/* Pipeline strip */
+.pipeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 16px 0 20px 0;
+  position: relative;
+  z-index: 1;
+}
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.stage-box {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  text-align: center;
+  white-space: nowrap;
+  min-width: 90px;
+}
+.neural { background: #2E75B6; border: 1px solid #5BA3D9; }
+.symbolic { background: #1B3A5C; border: 1px solid #3D6A8E; }
+.exit-box { background: #C05050; border: 1px solid #E07070; }
+.stage-label {
+  font-family: Arial, sans-serif;
+  font-size: 9px;
+  color: rgba(255,255,255,0.5);
+}
+.arrow {
+  color: #5BA3D9;
+  font-size: 18px;
+  margin: 0 4px;
+  margin-bottom: 14px;
+}
+.branch-arrow {
+  color: #E07070;
+  font-size: 14px;
+  transform: rotate(90deg);
+  margin-bottom: 14px;
+}
+
+/* Metrics strip */
+.metrics {
+  display: flex;
+  gap: 16px;
+  margin-top: auto;
+  position: relative;
+  z-index: 1;
+}
+.metric {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 12px 18px;
+  text-align: center;
+  flex: 1;
+}
+.metric-val {
+  font-family: Arial, sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: white;
+}
+.metric-lbl {
+  font-family: Arial, sans-serif;
+  font-size: 10px;
+  color: #8ECAE6;
+  margin-top: 2px;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  position: relative;
+  z-index: 1;
+}
+.footer-text {
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+}
+.tag {
+  background: rgba(76,175,80,0.2);
+  border: 1px solid rgba(76,175,80,0.4);
+  border-radius: 4px;
+  padding: 3px 10px;
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  color: #81C784;
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top-row">
+    <div class="title-area">
+      <div class="badge">MedGemma 4B · 4-bit Quantized · 3.2 GB VRAM</div>
+      <h1>Vax-Beacon</h1>
+      <div class="subtitle">Scalable WHO AEFI Causality Assessment on Consumer Hardware</div>
+    </div>
+  </div>
+
+  <!-- Pipeline -->
+  <div class="pipeline">
+    <div class="stage">
+      <div class="stage-box neural">S1: Extract</div>
+      <div class="stage-label">🤖+⚙️</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage">
+      <div class="stage-box symbolic">S2: Brighton</div>
+      <div class="stage-label">⚙️ Gate</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage">
+      <div class="stage-box neural">S3A: Observe</div>
+      <div class="stage-label">🤖+⚙️</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage">
+      <div class="stage-box symbolic">S3B: Match</div>
+      <div class="stage-label">⚙️</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage">
+      <div class="stage-box neural">S3C: Assess</div>
+      <div class="stage-label">🤖+⚙️</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage">
+      <div class="stage-box symbolic">S3D: NCI</div>
+      <div class="stage-label">⚙️</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage">
+      <div class="stage-box symbolic">S4: Audit</div>
+      <div class="stage-label">⚙️</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage">
+      <div class="stage-box neural">S5: WHO</div>
+      <div class="stage-label">⚙️+🤖</div>
+    </div>
+    <div class="arrow">→</div>
+    <div class="stage">
+      <div class="stage-box symbolic">S6: Guide</div>
+      <div class="stage-label">⚙️+KB</div>
+    </div>
+  </div>
+
+  <!-- Metrics -->
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-val">4/4</div>
+      <div class="metric-lbl">Showcase Accuracy</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val">98%</div>
+      <div class="metric-lbl">Pipeline Completion</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val">100%</div>
+      <div class="metric-lbl">Reproducibility</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val">100%</div>
+      <div class="metric-lbl">Guidance Rate</div>
+    </div>
+    <div class="metric">
+      <div class="metric-val">24%</div>
+      <div class="metric-lbl">Data Gap Discovery</div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-text">N=100 VAERS Benchmark · 90 Myocarditis + 10 Pericarditis · RTX 4050 Consumer GPU</div>
+    <div style="display:flex; gap:8px;">
+      <div class="tag">Edge Deployable</div>
+      <div class="tag">Privacy-First</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

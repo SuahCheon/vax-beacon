@@ -1,0 +1,2 @@
+﻿vaers_id,brighton_level,max_nci_score,dominant_alternative,who_category,guidance_type,key_logic_reasoning
+1347846,1,0.95,Viral myocarditis (infectious),C,gap_analysis,Strong temporal relationship within 3 days and high biological plausibility score (NCI=0.95) established causal association despite alternative infectious etiology being plausible.

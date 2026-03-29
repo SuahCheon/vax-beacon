@@ -1,0 +1,101 @@
+﻿vaers_id,brighton_level,max_nci_score,dominant_alternative,who_category,guidance_type,key_logic_reasoning
+925542,1,0.0,NONE,C,gap_analysis,Temporal proximity of 4 days and Brighton Level 1 evidence established a strong causal relationship despite absence of alternative diagnoses.
+966794,1,0.0,NONE,C,gap_analysis,"Temporal plausibility and Brighton Level 1 criteria met, but absence of alternative diagnoses and NCI score of 0.0 prevented higher causality classification."
+977955,1,0.0,NONE,C,gap_analysis,Consistent temporal relationship with plausible biological mechanism and absence of alternative explanations support this classification.
+983362,2,0.35,Viral myocarditis (infectious),A1,gap_analysis,Temporal proximity within strong causal window and plausible biological mechanism despite competing infectious etiology supported this assessment.
+1023768,1,0.0,NONE,C,gap_analysis,Temporal proximity of 5 days and Brighton Level 1 evidence support causal relationship despite absence of alternative diagnoses.
+1088210,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information prevented proper causality assessment despite documented adverse event following vaccination.
+1090794,2,0.6,Giant cell myocarditis,B2,gap_analysis,Temporal plausibility and moderate alternative diagnosis likelihood (NCI=0.6) without strong causal evidence support this probable association classification.
+1105807,1,0.0,NONE,A1,gap_analysis,"Consistent temporal relationship with vaccination (1 day) and Brighton Level 1 criteria met, establishing strong causal association with no competing diagnoses."
+1128543,1,0.0,NONE,C,gap_analysis,Absence of alternative causes and temporal relationship within expected background rate period established causal consistency despite lack of specific Brighton criteria confirmation.
+1147729,1,0.0,NONE,A1,gap_analysis,Consistent temporal relationship within 2 days post-vaccination with Brighton Level 1 evidence and absence of alternative diagnoses supports causal association.
+1219721,2,0.0,NONE,A1,gap_analysis,Temporal proximity of 3 days post-vaccination with strong causal relationship and Brighton Level 2 evidence supported this assessment.
+1259694,1,0.0,NONE,C,gap_analysis,"Absence of alternative causes and plausible temporal relationship to vaccination, despite meeting Brighton Level 1 criteria, resulted in this classification."
+1262194,3,0.0,NONE,A1,gap_analysis,Temporal proximity of 2 days post-vaccination with strong causal relationship and absence of alternative diagnoses supported this assessment.
+1262397,2,0.0,NONE,A1,gap_analysis,Temporal proximity of 3 days post-vaccination with Brighton Level 2 evidence and absence of alternative explanations supported the causal relationship assessment.
+1263276,1,1.0,Giant cell myocarditis,C,gap_analysis,"Temporal relationship at 50 days post-vaccination falls outside the biologically plausible window for vaccine-related myocarditis, despite high NCI score."
+1280493,1,0.35,Viral myocarditis (infectious),A1,gap_analysis,Consistent temporal relationship with vaccination and Brighton Level 1 classification indicating strong causal criteria despite competing infectious etiology.
+1286607,1,0.0,NONE,A1,gap_analysis,Consistent temporal relationship with vaccination on same day and no identifiable competing causes supported this assessment.
+1296631,1,0.0,NONE,A1,gap_analysis,Consistent temporal relationship within 5 days post-vaccination with Brighton Level 1 evidence and absence of alternative explanations support causality.
+1299305,1,0.0,NONE,A1,gap_analysis,"Consistent temporal relationship with vaccination on same day and Brighton Level 1 criteria met, establishing strong causal association."
+1310544,3,0.0,NONE,A1,gap_analysis,Temporal proximity of 3 days post-vaccination with strong causal relationship and Brighton Level 3 evidence supported the causal association assessment.
+1313197,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information and lack of alternative diagnoses prevented classification into a higher causality category.
+1314908,1,0.0,NONE,C,gap_analysis,"Temporal proximity to vaccination (same day) and Brighton Level 1 criteria met, despite absence of alternative diagnoses, warranting possible causality classification."
+1321207,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information and lack of alternative diagnoses prevented classification into a higher causality category.
+1326494,2,0.3,Toxin/ICI-induced myocarditis,A1,gap_analysis,Myocarditis onset one day post-vaccination with strong temporal relationship and plausible immunological mechanism met criteria for definite causality.
+1327087,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information prevented proper causality assessment despite documented adverse event following vaccination.
+1327571,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information prevented proper causality assessment despite documented adverse event following vaccination.
+1333399,2,0.0,NONE,A1,gap_analysis,Temporal proximity of 3 days post-vaccination with strong causal relationship and Brighton Level 2 classification supported this assessment.
+1333796,1,0.0,NONE,C,gap_analysis,"Temporal proximity of 5 days and Brighton Level 1 evidence support causal relationship, despite absence of alternative diagnoses."
+1341730,3,0.0,NONE,A1,gap_analysis,Temporal proximity of one day post-vaccination with no competing diagnoses and Brighton Level 3 evidence support a causal relationship.
+1343980,3,0.2,Viral myocarditis (infectious),C,gap_analysis,Plausible alternative explanation (viral myocarditis) and background temporal relationship preclude stronger causality despite Brighton Level 3 classification.
+1347238,1,1.0,Ischemic heart disease (CAD/MI),C,gap_analysis,Temporal proximity of 3 days combined with Brighton Level 1 evidence and maximum temporal plausibility score established a strong causal relationship despite alternative diagnoses.
+1347846,1,0.95,Viral myocarditis (infectious),C,gap_analysis,"Strong temporal relationship within 3 days and high biological plausibility despite alternative diagnosis, but insufficient evidence to exclude competing causes definitively."
+1349546,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information prevented proper causality assessment despite documented adverse event following vaccination.
+1350637,1,0.0,NONE,A1,gap_analysis,Consistent temporal relationship with vaccination (1 day) and Brighton Level 1 classification established strong causal association despite absence of alternative diagnoses.
+1350946,1,0.8,Viral myocarditis (infectious),C,gap_analysis,Plausible alternative explanation (viral myocarditis) and insufficient temporal relationship to vaccination despite Brighton Level 1 classification resulted in this categorization.
+1354460,3,0.0,NONE,A1,gap_analysis,Temporal proximity of 3 days post-vaccination with strong causal relationship and Brighton Level 3 classification supported the probable causal association determination.
+1354522,1,0.0,NONE,A1,gap_analysis,Consistent temporal relationship within 3 days post-vaccination with Brighton Level 1 evidence and absence of alternative explanations supported WHO classification.
+1357322,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information prevented proper causality assessment despite documented adverse event following vaccination.
+1361389,1,0.0,NONE,C,gap_analysis,Temporal proximity of one day post-vaccination with Brighton Level 1 evidence supports a potential causal relationship despite absence of alternative diagnoses.
+1382523,1,0.0,NONE,A1,gap_analysis,Consistent temporal relationship within 3 days post-vaccination with Brighton Level 1 evidence and absence of alternative explanations support causality.
+1382634,3,0.0,NONE,A1,gap_analysis,Temporal proximity of one day post-vaccination with strong causal relationship and absence of alternative explanations met criteria for consistent adverse event classification.
+1382955,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information and lack of alternative diagnoses prevented classification into higher causality categories.
+1386123,3,0.0,NONE,A1,gap_analysis,Temporal proximity of 2 days post-vaccination with strong causal relationship and absence of alternative explanations met criteria for consistent adverse event classification.
+1394458,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information and lack of alternative diagnoses prevented classification into a higher causality category.
+1395737,3,0.0,NONE,A1,gap_analysis,Temporal plausibility within 20 days combined with Brighton Level 3 evidence and absence of alternative causes supported the unrelated classification.
+1396077,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information and lack of alternative diagnoses prevented classification into higher causality categories.
+1397727,3,0.0,NONE,A1,gap_analysis,Temporal proximity of one day post-vaccination with no competing diagnoses and Brighton Level 3 evidence support a causal relationship.
+1400188,4,0.0,NONE,Unclassifiable,gap_analysis,"Insufficient temporal information and lack of alternative diagnoses prevented classification beyond Brighton Level 4, triggering early exit protocol."
+1400232,2,0.0,NONE,A1,gap_analysis,Temporal proximity of 2 days post-vaccination with strong causal relationship and Brighton Level 2 evidence supported probable causality classification.
+1400865,3,0.0,NONE,A1,gap_analysis,Temporal proximity of one day post-vaccination with strong causal relationship and absence of alternative explanations met criteria for consistent adverse event classification.
+1403701,3,0.0,NONE,A1,gap_analysis,Temporal proximity of 3 days post-vaccination with strong causal relationship and Brighton Level 3 classification supported the probable causal association determination.
+1412506,1,0.0,NONE,A1,gap_analysis,Consistent temporal relationship within 3 days post-vaccination with Brighton Level 1 evidence and absence of alternative explanations support causality.
+1412996,3,0.0,NONE,A1,gap_analysis,Temporal proximity of one day post-vaccination with no competing diagnoses and Brighton Level 3 evidence support a causal relationship.
+1413266,3,0.0,NONE,A1,gap_analysis,Temporal proximity of 2 days post-vaccination with strong causal relationship and absence of alternative explanations met criteria for consistent adverse event.
+1413465,2,0.5,Giant cell myocarditis,B2,gap_analysis,"Temporal proximity and Brighton Level 2 classification support causal relationship, though alternative diagnoses cannot be excluded, warranting probable causality assessment."
+1415281,3,0.0,NONE,A1,gap_analysis,Temporal proximity of 3 days post-vaccination with strong causal relationship and Brighton Level 3 evidence supported probable causality assessment.
+1419924,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information prevented proper causality assessment despite documented adverse event following vaccination.
+1423060,1,0.5,Giant cell myocarditis,Unclassifiable,gap_analysis,"Temporal relationship unknown and no specific timing data available, preventing causal assessment despite suggestive clinical features."
+1430395,2,0.4,Viral myocarditis (infectious),B2,gap_analysis,Plausible alternative explanation (viral myocarditis) with moderate probability and strong temporal relationship to vaccination insufficient to establish causality.
+1431066,2,0.0,NONE,A1,gap_analysis,Temporal proximity of 3 days post-vaccination with strong causal relationship and Brighton Level 2 classification supported the causal association assessment.
+1434274,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information prevented proper causality assessment despite documented adverse event following vaccination.
+1437261,1,0.5,Ischemic heart disease (CAD/MI),C,gap_analysis,Temporal plausibility and moderate NCI score insufficient to establish causal relationship with competing diagnosis of ischemic heart disease.
+1437909,3,1.0,Ischemic heart disease (CAD/MI),C,gap_analysis,Temporal proximity of 7 days with strong causal relationship and high algorithmic confidence (NCI=1.0) supported causality despite Brighton Level 3 classification.
+1464028,2,0.0,NONE,C,gap_analysis,Temporal relationship of 54 days post-vaccination falls outside the biologically plausible window for vaccine causality assessment.
+1464592,2,0.0,NONE,A1,gap_analysis,Temporal proximity of 3 days post-vaccination with strong causal relationship and Brighton Level 2 evidence supported the causal association assessment.
+1474640,1,0.0,NONE,A1,gap_analysis,Consistent temporal relationship within 3 days post-vaccination with Brighton Level 1 evidence and absence of alternative diagnoses supports causal association.
+1482907,1,0.0,NONE,A1,gap_analysis,Consistent temporal relationship within 2 days post-vaccination with Brighton Level 1 evidence and absence of alternative explanations supported this assessment.
+1482909,1,0.0,NONE,A1,gap_analysis,Consistent temporal relationship within 3 days post-vaccination with Brighton Level 1 evidence and absence of alternative explanations support causality.
+1489813,1,0.4,Viral myocarditis (infectious),B2,gap_analysis,Plausible alternative explanation (viral myocarditis) and moderate NCI score prevented higher causality despite strong temporal relationship and Brighton Level 1 classification.
+1490272,2,0.2,Viral myocarditis (infectious),A1,gap_analysis,Myocarditis onset within 2 days post-vaccination with strong temporal relationship and Brighton Level 2 classification supports causal association.
+1490549,3,0.8,COVID-19 related myocarditis,C,gap_analysis,Myocarditis occurring one day post-vaccination with strong temporal relationship and high alternative diagnosis probability (COVID-19 myocarditis) necessitated this classification.
+1498145,3,0.4,Viral myocarditis (infectious),C,gap_analysis,Plausible alternative explanation (viral myocarditis) with temporal relationship outside typical vaccine window and low temporal consistency index support unrelated classification.
+1499676,3,0.0,NONE,C,gap_analysis,Temporal relationship beyond background rate window and absence of alternative diagnoses support possible causality despite lower Brighton classification.
+1499689,2,0.2,Viral myocarditis (infectious),C,gap_analysis,Plausible alternative explanation (viral myocarditis) with low temporal consistency and background rate occurrence supports unrelated classification.
+1501224,3,0.6,Giant cell myocarditis,B2,gap_analysis,"Temporal proximity and clinical consistency with myocarditis support causality, but alternative diagnoses cannot be excluded, warranting probable rather than likely classification."
+1511080,3,0.0,NONE,C,gap_analysis,"Temporal proximity of one day post-vaccination with consistent clinical presentation, despite low numerical causality index, supports possible association."
+1515244,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information and lack of alternative diagnoses prevented classification into a higher causality category.
+1515531,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information prevented proper causality assessment despite documented adverse event following vaccination.
+1549179,1,0.0,NONE,A1,gap_analysis,Consistent temporal relationship within 3 days post-vaccination with Brighton Level 1 evidence and absence of alternative explanations supported this assessment.
+1591514,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information and lack of alternative diagnoses prevented classification into a higher causality category.
+1592056,3,0.2,Viral myocarditis (infectious),A1,gap_analysis,Myocarditis onset on vaccination day with strong temporal relationship and infectious etiology as plausible alternative explanation.
+1592526,3,0.2,Viral myocarditis (infectious),A1,gap_analysis,"Myocarditis onset 3 days post-vaccination with strong temporal relationship, but Brighton Level 3 and plausible alternative diagnosis (viral infection) preclude higher certainty."
+1636617,3,0.0,NONE,A1,gap_analysis,Temporal proximity of 3 days post-vaccination with strong causal relationship and Brighton Level 3 classification supported the probable causal association determination.
+1645372,3,0.2,Viral myocarditis (infectious),A1,gap_analysis,Temporal plausibility at 14 days post-vaccination combined with low alternative causality score (0.2) supported causal association despite Brighton Level 3 classification.
+1645384,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information prevented proper causality assessment despite documented adverse event following vaccination.
+1661275,3,1.0,Giant cell myocarditis,C,gap_analysis,Temporal proximity and high alternative diagnosis probability (NCI=1.0 for giant cell myocarditis) prevented higher causality despite strong temporal relationship.
+1666411,3,0.0,NONE,C,gap_analysis,Temporal relationship beyond background rate window and absence of alternative diagnoses support possible causality despite lower Brighton classification.
+1689697,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information prevented proper causality assessment despite documented adverse event following vaccination.
+1692252,3,0.5,Giant cell myocarditis,C,gap_analysis,Temporal proximity and strong causal relationship insufficient without stronger biological plausibility; alternative diagnosis (giant cell myocarditis) provides competing explanation.
+1704121,2,0.0,NONE,A1,gap_analysis,Temporal proximity of one day post-vaccination with consistent clinical presentation and absence of alternative explanations met criteria for probable causality.
+1705028,3,0.0,NONE,A1,gap_analysis,Temporal proximity of 2 days post-vaccination with strong causal relationship and absence of alternative diagnoses supported this assessment.
+1708522,1,0.0,NONE,A1,gap_analysis,Consistent temporal relationship with vaccination (1 day) and Brighton Level 1 classification established strong causal association despite absence of alternative diagnoses.
+1712137,3,0.5,Giant cell myocarditis,B2,gap_analysis,Temporal proximity and strong causal relationship insufficient without stronger biological plausibility; alternative diagnosis (giant cell myocarditis) provides competing explanation.
+1735422,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information prevented proper causality assessment despite documented adverse event following vaccination.
+1740551,1,0.0,NONE,A1,gap_analysis,Consistent temporal relationship within 4 days post-vaccination with Brighton Level 1 evidence and no identifiable competing causes supported causality classification.
+1790502,4,0.0,NONE,Unclassifiable,gap_analysis,Insufficient temporal information prevented proper causality assessment despite documented adverse event following vaccination.
+1793549,3,0.35,Viral myocarditis (infectious),A1,gap_analysis,Myocarditis onset one day post-vaccination with strong temporal relationship and infectious etiology as plausible alternative explanation.
+1795077,3,0.0,NONE,A1,gap_analysis,Temporal proximity of one day post-vaccination with no competing diagnoses and Brighton Level 3 evidence support a causal relationship.
+1828901,2,0.5,Giant cell myocarditis,C,gap_analysis,"Temporal relationship falls within background rate period, and alternative diagnosis (giant cell myocarditis) cannot be excluded despite moderate temporal consistency."
+1829441,1,1.0,Giant cell myocarditis,C,gap_analysis,"Temporal proximity and high NCI score support causal relationship, but Brighton Level 1 classification requires additional confirmatory evidence beyond temporal association alone."
